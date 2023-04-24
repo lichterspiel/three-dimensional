@@ -4,6 +4,7 @@ import * as THREE from 'three';
 
 import styles from './playground.module.css'
 
+let canvas: HTMLCanvasElement;
 let renderer: THREE.Renderer;
 let camera: THREE.PerspectiveCamera;
 let scene: THREE.Scene;
@@ -11,6 +12,10 @@ let controls: any;
 let rotationPoint: THREE.Object3D;
 let raycaster: THREE.Raycaster;
 let pickPosition: THREE.Vector2;
+let playObj: {
+        [key: number]: THREE.Mesh
+    };
+let game: number[][];
 
 function initThree(canvas: HTMLCanvasElement): void {
     scene = new THREE.Scene();
@@ -20,6 +25,12 @@ function initThree(canvas: HTMLCanvasElement): void {
     rotationPoint = new THREE.Object3D();
     raycaster = new THREE.Raycaster();
     pickPosition = new THREE.Vector2();
+    playObj = {};
+    game = [
+        [0,0,0],
+        [0,0,0],
+        [0,0,0],
+    ];
 
     const axesHelper = new THREE.AxesHelper(50);
     scene.add(axesHelper);
@@ -27,7 +38,7 @@ function initThree(canvas: HTMLCanvasElement): void {
     rotationPoint.position.set(0, 0, 0);
     scene.add( rotationPoint );
 
-    camera.position.set(0,100, -100);
+    camera.position.set(0,50, 50);
     camera.lookAt(0,0,0);
     controls.update();
 
@@ -35,19 +46,7 @@ function initThree(canvas: HTMLCanvasElement): void {
     controls.minDistance = 20;
     controls.target.copy(new THREE.Vector3(0, 0, 0));
 
-    function getCanvasRelativePosition(event: MouseEvent) {
-        const rect = canvas.getBoundingClientRect();
-        // so basically - left makes it if the canvas is moved somewhere else
-        // canvas width is how many pixels it draws, rect.width is the actual css width of the canvas
-        // and the mouse event does it on the viewport so we need to scale it according to aspect ratio
-        return {
-            x: (event.clientX - rect.left) * canvas.width  / rect.width,
-            y: (event.clientY - rect.top ) * canvas.height / rect.height,
-        };
-    }
-
-    // TODO rename this
-    function setPickPosition(event: MouseEvent) {
+    function pickField(event: MouseEvent) {
         //normalize pos to be between -1 and 1
         const pos = getCanvasRelativePosition(event);
         pickPosition.x = (pos.x / canvas.width ) *  2 - 1;
@@ -64,29 +63,21 @@ function initThree(canvas: HTMLCanvasElement): void {
                 console.log(picked.geometry.type);
                 if (picked.geometry.type === 'PlaneGeometry')
                 {
-                    picked.material =  new THREE.MeshBasicMaterial({ color: 0x0fffff });
+                    game[Math.floor(parseInt(picked.name) / 3)][parseInt(picked.name) % 3] = 1;
+                    console.log(game);
+
+                    // replace the hitbox with the model
+                    const c = createCircle();
+
+                    c.position.copy(picked.position)
+                    c.rotation.copy(picked.rotation)
+                    picked.parent?.add(c);
+                    picked.removeFromParent();
                 }
  
             }
        }
     }
-
-    function clearPickPosition() {
-        // unlike the mouse which always has a position
-        // if the user stops touching the screen we want
-        // to stop picking. For now we just pick a value
-        // unlikely to pick something
-        pickPosition.x = -1000000000;
-        pickPosition.y = -10000000000;
-    }
-
-    window.addEventListener('mouseout', clearPickPosition);
-    window.addEventListener('mouseleave', clearPickPosition);
-    window.addEventListener('mousedown', setPickPosition);
-
-
-    createBoard();
-    animate();
 
     function animate() {
         requestAnimationFrame(animate);
@@ -100,35 +91,31 @@ function initThree(canvas: HTMLCanvasElement): void {
             camera.aspect = canvas.clientWidth / canvas.clientHeight;
             camera.updateProjectionMatrix();
         }
-
-     
-
     }
 
     function render(){
         renderer.render( scene, camera );
     }
 
-    function resizeRendererToDisplaySize(renderer: THREE.Renderer) {
-        const pixelRatio = window.devicePixelRatio;
-        const width  = canvas.clientWidth  * pixelRatio | 0;
-        const height = canvas.clientHeight * pixelRatio | 0;
-        const needResize = canvas.width !== width || canvas.height !== height;
-        if (needResize) {
-            renderer.setSize(width, height, false);
-        }
-        return needResize;
-    }
+
+    window.addEventListener('mouseout', clearPickPosition);
+    window.addEventListener('mouseleave', clearPickPosition);
+    window.addEventListener('mousedown', pickField);
+
+    createBoard();
+    animate();
 }
 
 function createCircle(){
-    const radius = 5;  
-    const tubeRadius = 2;  
+    const radius = 1.5;  
+    const tubeRadius = 0.5;  
     const radialSegments = 8;  
     const tubularSegments = 24;  
     const geometry = new THREE.TorusGeometry(
             radius, tubeRadius,
             radialSegments, tubularSegments );
+    const mat = new THREE.MeshBasicMaterial({color: 0xff82af})
+    return new THREE.Mesh(geometry, mat);
 }
 
 function createBoard(){
@@ -166,8 +153,7 @@ function createBoard(){
         ]
 
     lines.forEach((l,i) => {
-
-        l.rotateX(Math.PI/2);
+        l.rotateX(Math.PI / 2);
 
         if (i <= 1){
             l.position.set(i*distance - distance / 2,0,0)
@@ -185,11 +171,14 @@ function createBoard(){
     lineGroup.add(hitboxLocal);
 
     hitbox.forEach((h,i) => {
-
-
             hitboxLocal.add(h);
+
             h.position.set((i % 3) * distance, 0, (Math.floor(i / 3) * distance));
             h.rotateX(-Math.PI / 2);
+
+            h.name = i.toString();
+
+            playObj[i] = h;
         }
     )
 
@@ -199,8 +188,40 @@ function createBoard(){
     rotationPoint.add(lineGroup);
 }
 
+function resizeRendererToDisplaySize(renderer: THREE.Renderer) {
+    const pixelRatio = window.devicePixelRatio;
+    const width  = canvas.clientWidth  * pixelRatio | 0;
+    const height = canvas.clientHeight * pixelRatio | 0;
+    const needResize = canvas.width !== width || canvas.height !== height;
+    if (needResize) {
+        renderer.setSize(width, height, false);
+    }
+    return needResize;
+}
+
+
+function getCanvasRelativePosition(event: MouseEvent) {
+    const rect = canvas.getBoundingClientRect();
+    // so basically - left makes it if the canvas is moved somewhere else
+    // canvas width is how many pixels it draws, rect.width is the actual css width of the canvas
+    // and the mouse event does it on the viewport so we need to scale it according to aspect ratio
+    return {
+        x: (event.clientX - rect.left) * canvas.width  / rect.width,
+        y: (event.clientY - rect.top ) * canvas.height / rect.height,
+    };
+}
+
+function clearPickPosition() {
+    // unlike the mouse which always has a position
+    // if the user stops touching the screen we want
+    // to stop picking. For now we just pick a value
+    // unlikely to pick something
+    pickPosition.x = -1000000000;
+    pickPosition.y = -10000000000;
+}
+
+
 const Playground: Component = () => {
-    let canvas: HTMLCanvasElement;
 
    onMount(() => {
         initThree(canvas);
