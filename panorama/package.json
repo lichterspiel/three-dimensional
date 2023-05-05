@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@solidjs/router": "^0.8.2",
+    "axios": "^1.4.0",
     "babel-preset-solid": "^1.7.3",
     "socket.io-client": "^4.6.1",
     "solid-js": "^1.7.3",

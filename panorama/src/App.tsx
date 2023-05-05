@@ -5,7 +5,7 @@ import Playground from './redline/playground';
 
 const App: Component = () => {
   return (
-    <Playground/>
+  <> APP </>
   );
 };
 

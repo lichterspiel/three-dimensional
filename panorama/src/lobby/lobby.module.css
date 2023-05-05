@@ -1,0 +1,18 @@
+.buttonContainer{
+    width: 30%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-left: 35%;
+}
+
+.gameButton{
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 5px 10px;
+  min-width: 150px;
+  font-weight: bold;  
+  background: #64CC64;
+  border: 3px outset;
+  border-color: #64CC64;
+}

@@ -17,7 +17,9 @@ let boardMeshHitboxes: {
     [key: number]: THREE.Mesh
 };
 let gameId: string;
+let userId: string;
 let player: number;
+let isGameInit: boolean;
 let turn = 0;
 
 
@@ -25,6 +27,7 @@ function initGear3(c: HTMLCanvasElement, s: Socket, gId: string){
     canvas = c;
     socket = s;
     gameId = gId;
+    isGameInit = false;
 
     setupSocket();
     initThree();
@@ -32,23 +35,28 @@ function initGear3(c: HTMLCanvasElement, s: Socket, gId: string){
 }
 
 function setupSocket(){
-    // TODO: define response globally
-    socket.on("init-game", (r: string) => {
+    // player-joined is when only one  i in the room
+    socket.on("player-joined", (r: string) => {
+        let req: PlsInit = {gameId: gameId};
+        socket.emit("pls-init", req);
+    })
+
+    // this should come when everyone joined and then send every information to everyone
+    socket.on("init-game", (r: string)=> {
         let res: InitGame = JSON.parse(r)
-        player = res['playerNum'];
+        isGameInit = true;
+        player = res[userId] as number
     })
 
     socket.on("confirm-player-move", (r: string)=> {
         let res: ConfirmPlayerMove = JSON.parse(r);
+        
         spawnPlayerField(`${res['field']}`);
     })
 }
 
 function initGame(){
-    // add checks if player is already in a game
-    let req: PlsInit = {playerId: socket.id, gameId: gameId};
-    socket.emit("pls-init", req);
-
+    //TODO: add checks if player is already in a game
     boardMeshHitboxes = {};
 
     createBoard();
@@ -102,13 +110,13 @@ function render() {
 }
 
 function updateBoard(hit: number){
-    let req: PlayerMove = {gameId: gameId, playerNum: player, field: hit};
+    let req: PlayerMove = {gameId: gameId, playerId: userId, field: hit};
     
     socket.emit("player-move", req)
 }
 
 function spawnPlayerField(pMeshName: string){
-    let c = player == 1 ? createCircle(0xf782faf) :  createCircle(0xff82af);
+    let c = turn == 1 ? createCircle(0xf782faf) :  createCircle(0xff82af);
     turn = turn === 1 ? 0 : 1;
 
     let hit = rotationPoint.getObjectByName(pMeshName);
