@@ -29,8 +29,8 @@ function initGear3(c: HTMLCanvasElement, s: Socket, gId: string){
     gameId = gId;
     isGameInit = false;
 
-    setupSocket();
     initThree();
+    setupSocket();
     initGame();
 }
 
@@ -42,22 +42,42 @@ function setupSocket(){
     })
 
     // this should come when everyone joined and then send every information to everyone
-    socket.on("init-game", (r: string)=> {
+    socket.on("init-game", (r: string) => {
         let res: InitGame = JSON.parse(r)
+        console.log(r,res);
+        console.log(userId);
+        
+        
         isGameInit = true;
         player = res[userId] as number
+        turn = res['turn']
+        console.log(isGameInit, player, turn);
+        
     })
 
-    socket.on("confirm-player-move", (r: string)=> {
+    socket.on("confirm-player-move", (r: string) => {
         let res: ConfirmPlayerMove = JSON.parse(r);
         
         spawnPlayerField(`${res['field']}`);
     })
+
+    socket.on('game-over', (r: string) => {
+        let res = JSON.parse(r);
+
+        createGameOverScreen(res['winner'])
+        console.log(res);
+    })
+
 }
 
 function initGame(){
     //TODO: add checks if player is already in a game
+    //and load the field
     boardMeshHitboxes = {};
+
+    let req = {gameId: gameId}
+    socket.emit('player-join', req)
+
 
     createBoard();
     gameLoop();
@@ -110,8 +130,10 @@ function render() {
 }
 
 function updateBoard(hit: number){
-    let req: PlayerMove = {gameId: gameId, playerId: userId, field: hit};
+    console.log(player);
+    console.log(isGameInit);
     
+    let req: PlayerMove = {gameId: gameId, playerId: userId, field: hit};
     socket.emit("player-move", req)
 }
 
@@ -129,7 +151,19 @@ function spawnPlayerField(pMeshName: string){
     }
 }
 
-function pickField(event: MouseEvent) {
+const pickField = (event: MouseEvent): void => {
+    console.log(player);
+    
+    console.log(isGameInit);
+    
+    /*
+    if (!isGameInit){
+        return
+    }
+    if (turn != player){
+        return
+    }
+    */
     //normalize pos to be between -1 and 1
     const pos = getCanvasRelativePosition(event);
     pickPosition.x = (pos.x / canvas.width) * 2 - 1;
@@ -239,6 +273,62 @@ function createBoard() {
 
     lineGroup.add(hitboxLocal);
     rotationPoint.add(lineGroup);
+}
+
+function createGameOverScreen(winner: string){
+    
+    const canvasForText = makeLabelCanvas(150, 32, `GAME OVER ${winner} won`);
+
+    const texture = new THREE.CanvasTexture(canvasForText);
+    // because our canvas is likely not a power of 2
+    // in both dimensions set the filtering appropriately.
+    texture.minFilter = THREE.LinearFilter;
+    texture.wrapS = THREE.ClampToEdgeWrapping;
+    texture.wrapT = THREE.ClampToEdgeWrapping;
+
+    const labelMaterial = new THREE.SpriteMaterial({
+        map: texture,
+        transparent: true,
+    })
+
+    const label = new THREE.Sprite(labelMaterial);
+    rotationPoint.add(label)
+    const labelBaseScale = 0.6;
+    label.scale.x = canvasForText.width  * labelBaseScale;
+    label.scale.y = canvasForText.height * labelBaseScale;
+
+}
+
+function makeLabelCanvas(baseWidth: number, size: number, message: string): HTMLCanvasElement{
+    const borderSize = 2;
+    const ctx = document.createElement('canvas').getContext('2d')!;
+    const font =  `${size}px bold sans-serif`;
+
+    ctx.font = font;
+    // measure how long the name will be
+    const textWidth = ctx.measureText(message).width;
+
+    const doubleBorderSize = borderSize * 2;
+    const width = baseWidth + doubleBorderSize;
+    const height = size + doubleBorderSize;
+    ctx.canvas.width =  width;
+    ctx.canvas.height = height;
+
+    // need to set font again after resizing canvas
+    ctx.font = font;
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'center';
+
+    ctx.fillStyle = 'green';
+    ctx.fillRect(0, 0, width, height);
+
+    const scaleFactor = Math.min(1, baseWidth / textWidth);
+    ctx.translate(width / 2, height / 2);
+    ctx.scale(scaleFactor, 1);
+    ctx.fillStyle = 'white';
+    ctx.fillText(message, 0, 0);
+
+    return ctx.canvas;
 }
 
 function resizeRendererToDisplaySize(renderer: THREE.Renderer) {

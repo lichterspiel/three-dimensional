@@ -1,6 +1,6 @@
 import { generateUUID } from 'three/src/math/MathUtils';
 import styles from './lobby.module.css';
-import { Component } from "solid-js";
+import { Component, onMount } from "solid-js";
 import { useNavigate } from '@solidjs/router';
 import axios from 'axios';
 
@@ -16,14 +16,17 @@ const Lobby: Component = () => {
 
     async function createGame(){
         const gameId = generateUUID();
-        await fetch("http://localhost:5000/session", {credentials: "include"})
-        console.log(document.cookie);
-        
         navigate(`/game/${gameId}`)
     }
 
-    function joinGame(): void{
+    onMount(() => {
+        fetch("http://localhost:5000/session", {credentials: "include"})
+    })
+
+    function joinGame(){
+        return
     }
+
 
     return (<>
     <div class="container">

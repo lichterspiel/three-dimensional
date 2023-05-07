@@ -1,10 +1,10 @@
-from flask import Flask, jsonify, session
+from flask import Flask, session
 from flask_session import Session
 from flask_socketio import SocketIO, emit, join_room
 from flask_cors import CORS
 import math
 import uuid
-import json 
+import json
 
 app = Flask(__name__)
 app.config.update(
@@ -25,7 +25,13 @@ socketio = SocketIO(app,
                     manage_session=False)
 
 
+empty_field = 9
 rooms = {}
+magicSquare = [
+                [8, 1, 6],
+                [3, 5, 7],
+                [4, 9, 2],
+              ]
 
 
 @app.route('/session', methods=['GET'])
@@ -33,50 +39,36 @@ def index():
     userId = str(uuid.uuid4())
     if 'userId' not in session:
         session['userId'] = userId
-    print("========index========")
-    print(session)
-    print(session.sid)
-    print("========index========")
-
-    return '', 204
-
-
-@app.route('/test', methods=['GET'])
-def test():
-    print("===========test========")
-    print(session)
-    print(session.sid)
-    print("===========test========")
-
     return '', 204
 
 
 @socketio.on('pls-init')
 def handle_init(rq):
     gameId = rq['gameId']
-    print("===========init========")
-    print(session)
-    print(session.sid)
-    print("===========init========")
 
     playerId = session['userId']
 
     if gameId not in rooms:
         # TODO: put later player id from registration
         rooms[gameId] = {
-            'board': [[3 for i in range(3)]for i in range(3)],
-            playerId: 0,
+            'board': [[empty_field for i in range(3)]for i in range(3)],
             'turn': 0,
-            'count': 1
+            'count': 1,
+            playerId: 0
         }
+        print(rooms[gameId])
     else:
-        if playerId not in rooms[gameId].keys():
-            if rooms[gameId]['count'] == 2:
-                return
+        if playerId not in rooms[gameId] and rooms[gameId]['count'] == 2:
+            return
+        elif playerId in rooms[gameId] and rooms[gameId]['count'] == 2:
+            emit("load-game", json.dumps(rooms[gameId]), to=gameId)
+            return
+        else:
 
             rooms[gameId][playerId] = 1
             rooms[gameId]['count'] += 1
-            emit("init-game", jsonify(rooms[gameId]))
+            print(rooms[gameId])
+            emit("init-game", json.dumps(rooms[gameId]), to=gameId)
 
 # here emit initGame to start the game
 # and get information of the users and send to everyone
@@ -84,31 +76,77 @@ def handle_init(rq):
 
 @socketio.on('connect')
 def handle_connect(rq):
-    print(session)
     pass
-
 
 
 @socketio.on('player-join')
 def handle_player_join(rq):
     gameId = rq['gameId']
+    print(session['userId'])
 
     join_room(gameId)
     emit('player-joined', to=rq['gameId'])
 
 
+# TODO: this should not overwrite moves check
 @socketio.on('player-move')
 def handle_player_move(res):
     game = rooms[res['gameId']]
     board = game['board']
     playerId = session['userId']
+    move = res['field']
 
-    if game['turn'] == game[playerId]:
-        board[math.floor(res['field'] / 3)][res['field'] % 3] = game[playerId]
+    if game['turn'] == game[playerId] and board[math.floor(move / 3)][move % 3] == empty_field:
+        board[math.floor(move / 3)][move % 3] = game[playerId]
+
+        if check_if_won(board, move, game['turn']):
+            emit('game-over', json.dumps({'winner': game['turn']}), to=res['gameId'])
+            return
+
         game['turn'] = 1 if game['turn'] == 0 else 0
+
         emit('confirm-player-move',
-             json.dumps({'field': res['field']}),
+             json.dumps({'field': move}),
              to=res['gameId'])
+
+
+# TODO: definetly rework this haha
+def check_if_won(board, lastMove, turn):
+
+    count = 0
+    # check row of last move
+    rowCheck = board[math.floor(lastMove / 3)]
+    for i, value in enumerate(rowCheck):
+        if turn == value:
+            count += magicSquare[math.floor(lastMove / 3)][i]
+    if count == 15:
+        return True
+
+    count = 0
+    # check column of last move
+    for i, row in enumerate(board):
+        if row[lastMove % 3] == turn:
+            count += magicSquare[i][lastMove % 3]
+    if count == 15:
+        return True
+
+    count = 0
+    # diagonal check
+    for i, row in enumerate(board):
+        if row[i] == turn:
+            count += magicSquare[i][i]
+    if count == 15:
+        return True
+
+    count = 0
+    # anti diagonal check
+    for i, row in enumerate(board):
+        if row[len(row) - 1 - i] == turn:
+            count += magicSquare[i][len(row) - 1 - i]
+    if count == 15:
+        return True
+
+    return False
 
 
 if __name__ == '__main__':
