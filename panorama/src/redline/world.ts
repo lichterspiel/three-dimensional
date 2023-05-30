@@ -29,21 +29,39 @@ function initGear3(c: HTMLCanvasElement, s: Socket, gId: string){
     gameId = gId;
     isGameInit = false;
 
-    initThree();
     setupSocket();
+    initThree();
     initGame();
 }
 
-function setupSocket(){
-    // player-joined is when only one  i in the room
-    socket.on("player-joined", (r: string) => {
-        let req: PlsInit = {gameId: gameId};
-        socket.emit("pls-init", req);
-    })
+function fillBoard(board: number[][]){
+    console.log(board);
+    
+    for (let row = 0; row < 3; row++){
+        for (let col = 0; col < 3; col++){
+            if (board[row][col] != 9){
+                let c = board[row][col] == 0 ? createCircle(0xf782faf) :  createCircle(0xff82af);
+                let objName = row * 3 + col;
+                let object = rotationPoint.getObjectByName(objName.toString())!;
+                console.log(object);
+                
+                c.position.copy(object.position)
+                c.rotation.copy(object.rotation)
 
+                object?.parent?.add(c);
+                object?.removeFromParent();
+            }
+
+        }
+    }
+}
+
+function setupSocket(){
     // this should come when everyone joined and then send every information to everyone
     socket.on("init-game", (r: string) => {
         let res: InitGame = JSON.parse(r)
+        console.log("init");
+        
         console.log(r,res);
         console.log(userId);
         
@@ -53,6 +71,27 @@ function setupSocket(){
         turn = res['turn']
         console.log(isGameInit, player, turn);
         
+    })
+
+    socket.on("load-game", (r: string) => {
+        let res: InitGame = JSON.parse(r)
+        console.log("load");
+        
+        console.log(r,res);
+        console.log(userId);
+        
+        
+        isGameInit = true;
+        player = res[userId] as number
+        turn = res['turn']
+        
+        if (res['board'])
+            fillBoard(res['board'])
+        console.log(isGameInit, player, turn);
+    })
+    
+    socket.on("send-id", (r: string) => {
+        userId = r;
     })
 
     socket.on("confirm-player-move", (r: string) => {
@@ -130,15 +169,12 @@ function render() {
 }
 
 function updateBoard(hit: number){
-    console.log(player);
-    console.log(isGameInit);
-    
     let req: PlayerMove = {gameId: gameId, playerId: userId, field: hit};
     socket.emit("player-move", req)
 }
 
 function spawnPlayerField(pMeshName: string){
-    let c = turn == 1 ? createCircle(0xf782faf) :  createCircle(0xff82af);
+    let c = turn == 0 ? createCircle(0xf782faf) :  createCircle(0xff82af);
     turn = turn === 1 ? 0 : 1;
 
     let hit = rotationPoint.getObjectByName(pMeshName);
@@ -153,7 +189,7 @@ function spawnPlayerField(pMeshName: string){
 
 const pickField = (event: MouseEvent): void => {
     console.log(player);
-    
+    console.log(userId);
     console.log(isGameInit);
     
     /*
@@ -276,8 +312,7 @@ function createBoard() {
 }
 
 function createGameOverScreen(winner: string){
-    
-    const canvasForText = makeLabelCanvas(150, 32, `GAME OVER ${winner} won`);
+    const canvasForText = makeLabelCanvas(200, 25, `GAME OVER ${winner} won`);
 
     const texture = new THREE.CanvasTexture(canvasForText);
     // because our canvas is likely not a power of 2
@@ -293,7 +328,7 @@ function createGameOverScreen(winner: string){
 
     const label = new THREE.Sprite(labelMaterial);
     rotationPoint.add(label)
-    const labelBaseScale = 0.6;
+    const labelBaseScale = 0.5;
     label.scale.x = canvasForText.width  * labelBaseScale;
     label.scale.y = canvasForText.height * labelBaseScale;
 

@@ -1,4 +1,4 @@
-from flask import Flask, session
+from flask import Flask, session, request
 from flask_session import Session
 from flask_socketio import SocketIO, emit, join_room
 from flask_cors import CORS
@@ -26,7 +26,10 @@ socketio = SocketIO(app,
 
 
 empty_field = 9
+# rooms is the game and lobby is before the game starts the initial phase
+# where we wait until 2 players joined
 rooms = {}
+lobby = {}
 magicSquare = [
                 [8, 1, 6],
                 [3, 5, 7],
@@ -42,33 +45,18 @@ def index():
     return '', 204
 
 
-@socketio.on('pls-init')
-def handle_init(rq):
-    gameId = rq['gameId']
-
-    playerId = session['userId']
-
+def initGame(gameId, p1, p2):
     if gameId not in rooms:
         # TODO: put later player id from registration
         rooms[gameId] = {
             'board': [[empty_field for i in range(3)]for i in range(3)],
             'turn': 0,
-            'count': 1,
-            playerId: 0
+            'p1': p1,
+            'p2': p2,
+            p1: 0,
+            p2: 1,
         }
-        print(rooms[gameId])
-    else:
-        if playerId not in rooms[gameId] and rooms[gameId]['count'] == 2:
-            return
-        elif playerId in rooms[gameId] and rooms[gameId]['count'] == 2:
-            emit("load-game", json.dumps(rooms[gameId]), to=gameId)
-            return
-        else:
-
-            rooms[gameId][playerId] = 1
-            rooms[gameId]['count'] += 1
-            print(rooms[gameId])
-            emit("init-game", json.dumps(rooms[gameId]), to=gameId)
+    emit("load-game", json.dumps(rooms[gameId]), to=request.sid)
 
 # here emit initGame to start the game
 # and get information of the users and send to everyone
@@ -82,10 +70,22 @@ def handle_connect(rq):
 @socketio.on('player-join')
 def handle_player_join(rq):
     gameId = rq['gameId']
-    print(session['userId'])
 
     join_room(gameId)
-    emit('player-joined', to=rq['gameId'])
+
+    if gameId not in lobby:
+        lobby[gameId] = {
+                'p1': session['userId'],
+                'count': 1,
+        }
+    if session['userId'] not in lobby[gameId].values() and lobby[gameId]['count'] == 1:
+        lobby[gameId]['p2'] = session['userId']
+        lobby[gameId]['count'] = 2
+        initGame(gameId, lobby[gameId]['p1'], lobby[gameId]['p2'])
+
+    emit("send-id", session['userId'], to=request.sid)
+    emit("load-game", json.dumps(rooms[gameId]), to=request.sid)
+
 
 
 # TODO: this should not overwrite moves check
