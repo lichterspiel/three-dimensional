@@ -1,8 +1,8 @@
-import { generateUUID } from 'three/src/math/MathUtils';
-import styles from './lobby.module.css';
-import { Component, onMount } from "solid-js";
 import { useNavigate } from '@solidjs/router';
-import axios from 'axios';
+import { Component, onMount } from 'solid-js';
+import { generateUUID } from 'three/src/math/MathUtils';
+
+import styles from './lobby.module.css';
 
 /*
  * TODO: This component should show at the top 2 buttons one to create a game the other to join a game either via code 
@@ -28,14 +28,16 @@ const Lobby: Component = () => {
     }
 
 
-    return (<>
-    <div class="container">
-        <div class={styles.buttonContainer}>
-          <button class={styles.gameButton} onClick={createGame}>Create</button>
-          <button class={styles.gameButton} onclick={joinGame}>Join</button>
+    return (
+    <>
+        <div class="container" id={styles.content}>
+            <div class={styles.buttonContainer}>
+              <button class={styles.gameButton} onClick={createGame}>Create</button>
+              <button class={styles.gameButton} onclick={joinGame}>Join</button>
+            </div>
         </div>
-    </div>
-    </>)
+    </>
+    )
 }
 
 export default Lobby;

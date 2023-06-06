@@ -1,17 +1,19 @@
 /* @refresh reload */
+import './index.css';
+
+import { Route, Router, Routes } from '@solidjs/router';
 import { render } from 'solid-js/web';
 
-import './index.css';
-import App from './App';
-import { Route, Router, Routes } from '@solidjs/router';
-import { ClockRoutes } from './nav/routes';
+import Login from './auth/login';
+import Home from './home/home';
 import Lobby from './lobby/lobby';
 import Playground from './redline/playground';
 
 render(() => (
         <Router>
             <Routes>
-                <Route path="/" component={App}/>
+                <Route path="/" component={Home}/>
+                <Route path="/login" component={Login}/>
                 <Route path="/lobby" component={Lobby}/>
                 <Route path="/game/:id" component={Playground}/>
             </Routes>

@@ -73,19 +73,24 @@ def handle_player_join(rq):
 
     join_room(gameId)
 
+    emit("send-id", session['userId'], to=request.sid)
+
     if gameId not in lobby:
         lobby[gameId] = {
                 'p1': session['userId'],
                 'count': 1,
         }
-    if session['userId'] not in lobby[gameId].values() and lobby[gameId]['count'] == 1:
+    if (session['userId'] not in lobby[gameId].values() and
+            lobby[gameId]['count'] == 1):
+
         lobby[gameId]['p2'] = session['userId']
         lobby[gameId]['count'] = 2
+        lobby[gameId]['isGameRunning'] = True
         initGame(gameId, lobby[gameId]['p1'], lobby[gameId]['p2'])
 
-    emit("send-id", session['userId'], to=request.sid)
-    emit("load-game", json.dumps(rooms[gameId]), to=request.sid)
-
+    if (session['userId'] in lobby[gameId].values() and
+            lobby[gameId]['isGameRunning']):
+        emit("load-game", json.dumps(rooms[gameId]), to=request.sid)
 
 
 # TODO: this should not overwrite moves check
@@ -96,14 +101,21 @@ def handle_player_move(res):
     playerId = session['userId']
     move = res['field']
 
-    if game['turn'] == game[playerId] and board[math.floor(move / 3)][move % 3] == empty_field:
+    if (game['turn'] == game[playerId] and
+            board[math.floor(move / 3)][move % 3] == empty_field):
+
         board[math.floor(move / 3)][move % 3] = game[playerId]
 
         if check_if_won(board, move, game['turn']):
-            emit('game-over', json.dumps({'winner': game['turn']}), to=res['gameId'])
+            lobby[res['gameId']]['isGameRunning'] = False
+            emit('game-over', json.dumps({'winner': game['turn']}),
+                 to=res['gameId'])
+
+            # TODO: This should also kick them out
+            # of the room and remove the game
             return
 
-        game['turn'] = 1 if game['turn'] == 0 else 0
+        game['turn'] = (game['turn'] + 1) % 2
 
         emit('confirm-player-move',
              json.dumps({'field': move}),

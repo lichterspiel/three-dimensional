@@ -1,6 +1,14 @@
-import { Component } from "solid-js";
+import { Component } from 'solid-js';
 
 const Login: Component = () => {
-    return <></>
+    return (
+    <>
+        <div class="container">
+            <div></div>
+        </div>
+    </>
+    )
 
 }
+
+export default Login

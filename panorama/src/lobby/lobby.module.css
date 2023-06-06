@@ -1,9 +1,9 @@
 .buttonContainer{
-    width: 30%;
+    width: 50%;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-left: 35%;
+    margin-left: 25%;
 }
 
 .gameButton{
@@ -15,4 +15,8 @@
   background: #64CC64;
   border: 3px outset;
   border-color: #64CC64;
+}
+
+#content {
+    background: url("../assets/pipes_pattern.jpg");
 }
