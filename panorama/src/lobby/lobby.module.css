@@ -7,16 +7,60 @@
 }
 
 .gameButton{
-  font-size: 2rem;
-  cursor: pointer;
-  padding: 5px 10px;
-  min-width: 150px;
-  font-weight: bold;  
-  background: #64CC64;
-  border: 3px outset;
-  border-color: #64CC64;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 5px 10px;
+    min-width: 150px;
+    font-weight: bold;  
+    border: 1px outset;
+    color: white;
 }
 
 #content {
     background: url("../assets/pipes_pattern.jpg");
+    padding-top: 5%;
+}
+
+.createButton{
+    background: url("../assets/smiley.gif");
+    background-size: 30%;
+    border-color: #FED545;
+}
+
+.joinButton{
+    background: url("../assets/stars.gif");
+    background-size: 50%;
+    border-color: #DA4662;
+}
+
+.navigate {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    top: 10px;
+    left: 30px;
+}
+
+#lobby {
+    width: 30px;
+}
+
+#refresh {
+    width: 50px;
+    height: 50px;
+}
+
+
+#left{
+    width: 50px;
+    height: 50px;
+}
+
+.link {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50px;
+    height: 50px;
+    transition: 0.2s;
 }

@@ -10,12 +10,10 @@
 }
 
 #play {
-    filter: drop-shadow(0px 0px 25px rgb(255, 255, 255));
-    transition: 0.4s;
+    transition: 0.2s;
 }
 
 #play:hover{
-    filter: drop-shadow(0px 0px 10px rgb(27, 212, 255));
     transform: scale(1.1) rotate(-10deg);
     transition:  0.25s;
 }
