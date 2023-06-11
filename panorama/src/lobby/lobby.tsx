@@ -1,12 +1,9 @@
-import { A, useNavigate } from '@solidjs/router';
-import { Component, onMount, createSignal } from 'solid-js';
+import { useNavigate } from '@solidjs/router';
+import { Component, onMount } from 'solid-js';
 import { generateUUID } from 'three/src/math/MathUtils';
 
 import styles from './lobby.module.css';
-import world from '../assets/world.gif';
-import bolt from '../assets/bolt.gif';
-import star from '../assets/star.gif';
-import tv from '../assets/tv.gif';
+import tv from '../assets/red_tv.png';
 
 /*
  * TODO: This component should show at the top 2 buttons one to create a game the other to join a game either via code 
@@ -17,48 +14,51 @@ import tv from '../assets/tv.gif';
 
 const Lobby: Component = () => {
     const navigate = useNavigate();
-    const [hoverNav, setHoverNav] = createSignal(false);
 
    function createGame(): void{
         const gameId = generateUUID();
         navigate(`/game/${gameId}`)
     }
 
-    onMount(() => {
-        fetch("http://localhost:5000/session", {credentials: "include"})
-    })
-
     function joinGame(): void{
         return
     }
 
-    function toggleNav(): void{
-        setHoverNav(!hoverNav())
+    function handleButtonHover(e: MouseEvent): void {
+        const target = e.target as HTMLButtonElement;
+        if (!target)
+            return
+
+        const yRot = e.offsetX - target.offsetWidth / 2;
+        const xRot = e.offsetY - target.offsetHeight / 2;
+        
+        target.style.transition = "";
+        target.style.transform = `rotateY(${yRot / 3}deg) rotateX(${-1 * xRot / 3}deg)`;
+    }
+
+    function handleMouseLeave(e: MouseEvent): void {
+        const target = e.target as HTMLButtonElement;
+        if (!target)
+            return
+
+
+        target.style.removeProperty("transform");
+        target.style.transition = "0.9s"
     }
 
     return (
     <>
         <div class="container" id={styles.content}>
-            <div class={styles.navigate}>
-                <img src={world} onClick={toggleNav} />
-
-                <A href="/lobby" class={styles.link} style={{"left": hoverNav() ? "130px" : "0",
-                                                                "transform": hoverNav() ? "scale(1)" : "scale(0.01)"}}>
-                    <img src={bolt} id={styles.lobby}/>
-                </A>
-                <A href="/lobby" class={styles.link} style={{"top": hoverNav() ? "65px" : "0",
-                                                                "left": hoverNav() ? "75px" : "0",
-                                                                "transform": hoverNav() ? "scale(1)" : "scale(0.01)"}}>
-                    <img src={star} id={styles.refresh}/>
-                </A>
-                 <A href="/lobby" class={styles.link} style={{"top": hoverNav() ? "125px" : "0",
-                                                                "transform": hoverNav() ? "scale(1)" : "scale(0.01)"}}>
-                    <img src={tv} id={styles.left}/>
-                </A>
-            </div>
             <div class={styles.buttonContainer}>
-                <button class={`${styles.gameButton} ${styles.createButton}`} onClick={createGame}>create</button>
-                <button class={`${styles.gameButton} ${styles.joinButton}`} onclick={joinGame}>join</button>
+                <button class={`${styles.gameButton} ${styles.createButton}`} 
+                    onClick={createGame} onMouseMove={handleButtonHover} onMouseLeave={handleMouseLeave}>create</button>
+                <button class={`${styles.gameButton} ${styles.joinButton}`} 
+                    onclick={joinGame} onMouseMove={handleButtonHover} onMouseLeave={handleMouseLeave}>join</button>
+            </div>
+
+            <div class={styles.game_rooms}>
+                <h1>Rooms</h1>
+                <img src={tv} id={styles.tv}/>
             </div>
         </div>
     </>

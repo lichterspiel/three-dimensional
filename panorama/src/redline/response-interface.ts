@@ -1,20 +1,19 @@
 interface InitGame{
-    [key: string]: number | string | number[][]
-    board: number[][];
-    turn: number;
+    board: string[][];
+    turn: string;
     count: number;
 }
 
 interface LoadGame {
-    [key: string]: number | string | number[][]
-    board: number[][]
-    turn: number
-    p1: string 
-    p2: string 
+    board: string[][];
+    turn: string;
+    p1: string;
+    p2: string; 
 }
 
 
 
 interface ConfirmPlayerMove{
-    field: number
+    field: number;
+    turn: string;
 }

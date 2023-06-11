@@ -3,31 +3,33 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 import { PlayerMove } from "./request-interface";
+import skybox_img from '../assets/skybox.jpeg'
+import { createBoard, createCircle, createGameOverScreen } from "./model-generation";
 
 let canvas: HTMLCanvasElement;
-let renderer: THREE.Renderer;
+let renderer: THREE.WebGLRenderer;
 let camera: THREE.PerspectiveCamera;
 let scene: THREE.Scene;
 let rootObject: THREE.Object3D;
 let raycaster: THREE.Raycaster;
 let pickPosition: THREE.Vector2;
+let loader: THREE.TextureLoader;
 let controls: any;
 let socket: Socket;
 
-let boardMeshHitboxes: {
-  [key: number]: THREE.Mesh;
-};
 let gameId: string;
-let userId: string;
-let player: number;
+let playerId: string;
+let playerNumber: number;
 let isGameRunning: boolean;
-let turn = 0;
+let turn: string;
+let setTurn: Function;
 
-function initGear3(c: HTMLCanvasElement, s: Socket, gId: string) {
+function initGear3(c: HTMLCanvasElement, s: Socket, gId: string, sTurn: Function) {
   canvas = c;
   socket = s;
   gameId = gId;
   isGameRunning = false;
+  setTurn = sTurn;
 
   setupSocket();
   initThree();
@@ -36,53 +38,47 @@ function initGear3(c: HTMLCanvasElement, s: Socket, gId: string) {
 
 function setupSocket() {
   // this should come when everyone joined and then send every information to everyone
-  socket.on("init-game", (r: string) => {
-    let res: InitGame = JSON.parse(r);
-    console.log(r, res);
-    console.log(userId);
-
-    isGameRunning = true;
-    player = res[userId] as number;
-    turn = res["turn"];
-    console.log(isGameRunning, player, turn);
-  });
-
   socket.on("load-game", (r: string) => {
     let res: LoadGame = JSON.parse(r);
+    console.log(res, playerId);
+    
 
     isGameRunning = true;
-    player = res[userId] as number;
     turn = res["turn"];
+    playerNumber = res["p1"] == playerId ? 0 : 1;
+    setTurn(res["turn"]);
 
     if (res["board"]) fillBoard(res["board"]);
   });
 
   socket.on("send-id", (r: string) => {
-    userId = r;
+    playerId = r;
   });
 
   socket.on("confirm-player-move", (r: string) => {
     let res: ConfirmPlayerMove = JSON.parse(r);
 
+    turn = res["turn"];
+    setTurn(res["turn"]);
     spawnPlayerField(`${res["field"]}`);
   });
 
   socket.on("game-over", (r: string) => {
     let res = JSON.parse(r);
 
-    createGameOverScreen(res["winner"]);
+    const gameOverText= res["winner"] == playerId ? "You won" : "You lost"
+    const label = createGameOverScreen(gameOverText);
+    
+    rootObject.add(label);
     isGameRunning = false;
-    console.log(res);
   });
 }
 
 function initGame() {
-  boardMeshHitboxes = {};
-
   let req = { gameId: gameId };
   socket.emit("player-join", req);
 
-  createBoard();
+  createBoard(rootObject);
   gameLoop();
 
   window.addEventListener("mousedown", pickField);
@@ -91,7 +87,19 @@ function initGame() {
 function initThree(): void {
   scene = new THREE.Scene();
   renderer = new THREE.WebGLRenderer({ antialias: true, canvas: canvas });
-
+  loader = new THREE.TextureLoader();
+  scene.background = new THREE.Color("white")
+  /*
+  const skybox = loader.load(
+      skybox_img,
+      () => {
+          const rt = new THREE.WebGLCubeRenderTarget(skybox.image.height);
+          rt.fromEquirectangularTexture(renderer, skybox);
+          rt.texture.encoding = THREE.sRGBEncoding;
+          scene.background = rt.texture;
+          scene.environment= rt.texture;
+      });
+      */
   camera = new THREE.PerspectiveCamera(
     45,
     canvas.offsetWidth / canvas.offsetHeight,
@@ -118,30 +126,6 @@ function initThree(): void {
   scene.add(axesHelper);
 }
 
-function fillBoard(board: number[][]) {
-  console.log(board);
-
-  for (let row = 0; row < 3; row++) {
-    for (let col = 0; col < 3; col++) {
-      if (board[row][col] != 9) {
-        let c =
-          board[row][col] == 0
-            ? createCircle(0xf782faf)
-            : createCircle(0xff82af);
-        let objName = row * 3 + col;
-        let object = rootObject.getObjectByName(objName.toString())!;
-        console.log(object);
-
-        c.position.copy(object.position);
-        c.rotation.copy(object.rotation);
-
-        object?.parent?.add(c);
-        object?.removeFromParent();
-      }
-    }
-  }
-}
-
 function gameLoop() {
   requestAnimationFrame(gameLoop);
   update();
@@ -162,13 +146,39 @@ function render() {
 }
 
 function updateBoard(hit: number) {
-  let req: PlayerMove = { gameId: gameId, playerId: userId, field: hit };
+  let req: PlayerMove = { gameId: gameId, playerId: playerId, field: hit };
+  
   socket.emit("player-move", req);
 }
 
+function fillBoard(board: string[][]) {
+  for (let row = 0; row < 3; row++) {
+    for (let col = 0; col < 3; col++) {
+      if (board[row][col] != "") {
+        let c =
+          board[row][col] == playerId
+            ? createCircle(0xf782faf)
+            : createCircle(0xff82af);
+        let objName = row * 3 + col;
+        let object = rootObject.getObjectByName(objName.toString())!;
+        console.log(object);
+        
+        if (object) {
+
+            c.position.copy(object.position);
+            c.rotation.copy(object.rotation);
+
+            object?.parent?.add(c);
+            object?.removeFromParent();
+        }
+      }
+    }
+  }
+}
+
 function spawnPlayerField(pMeshName: string) {
-  let c = turn == 0 ? createCircle(0xf782faf) : createCircle(0xff82af);
-  turn = turn === 1 ? 0 : 1;
+    let skinNumber = turn == playerId ? 0 : 1
+  let c = skinNumber == playerNumber ? createCircle(0xf782faf) : createCircle(0xff82af);
 
   let hit = rootObject.getObjectByName(pMeshName);
   if (hit) {
@@ -184,7 +194,10 @@ const pickField = (event: MouseEvent): void => {
   if (!isGameRunning) {
     return;
   }
-  if (turn != player) {
+
+  console.log(turn, playerId);
+  
+  if (turn != playerId) {
     return;
   }
 
@@ -207,165 +220,6 @@ const pickField = (event: MouseEvent): void => {
   }
 };
 
-function createCircle(color: number): THREE.Mesh {
-  const radius = 1.5;
-  const tubeRadius = 0.5;
-  const radialSegments = 8;
-  const tubularSegments = 24;
-  const geometry = new THREE.TorusGeometry(
-    radius,
-    tubeRadius,
-    radialSegments,
-    tubularSegments
-  );
-  const mat = new THREE.MeshBasicMaterial({ color: color });
-  return new THREE.Mesh(geometry, mat);
-}
-
-function createLine(length: number = 15): THREE.Mesh {
-  const radiusTop = 0.5;
-  const radiusBottom = 0.5;
-  const height = length;
-  const radialSegments = 8;
-  const geometry = new THREE.CylinderGeometry(
-    radiusTop,
-    radiusBottom,
-    height,
-    radialSegments
-  );
-
-  const lineMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-
-  return new THREE.Mesh(geometry, lineMaterial);
-}
-
-function createBoardHitbox(size: number) {
-  const hitboxGeo = new THREE.PlaneGeometry(size, size);
-  // TODO: maybe remove double side if annoying
-  const hitboxMaterial = new THREE.MeshBasicMaterial({
-    color: 0x000fff,
-    side: THREE.DoubleSide,
-  });
-  return new THREE.Mesh(hitboxGeo, hitboxMaterial);
-}
-
-function createBoard() {
-  const lineGroup = new THREE.Group();
-  const lines: THREE.Mesh[] = [
-    createLine(),
-    createLine(),
-    createLine(),
-    createLine(),
-  ];
-
-  const distance = 5;
-  const hitbox = [
-    createBoardHitbox(distance),
-    createBoardHitbox(distance),
-    createBoardHitbox(distance),
-    createBoardHitbox(distance),
-    createBoardHitbox(distance),
-    createBoardHitbox(distance),
-    createBoardHitbox(distance),
-    createBoardHitbox(distance),
-    createBoardHitbox(distance),
-  ];
-  const hitboxLocal = new THREE.Object3D();
-
-  lines.forEach((l, i) => {
-    l.rotateX(Math.PI / 2);
-
-    // first 2 lines vertical, last 2 horizontal
-    // - distance / 2 shifts board to center of world or rather the center of the board to the center
-    if (i <= 1) {
-      l.position.set(i * distance - distance / 2, 0, 0);
-    } else {
-      l.rotateZ(-Math.PI / 2);
-      l.position.set(0, 0, (i % 2) * distance - distance / 2);
-    }
-
-    lineGroup.add(l);
-  });
-
-  hitbox.forEach((h, i) => {
-    hitboxLocal.add(h);
-
-    // make hitboxes to a plane kinda just the layout
-    h.position.set((i % 3) * distance, 0, Math.floor(i / 3) * distance);
-    h.rotateX(-Math.PI / 2);
-
-    // name board to later identify it when raycasting
-    // TODO: rename this to also include which board it is later
-    h.name = i.toString();
-
-    boardMeshHitboxes[i] = h;
-  });
-
-  // align the hitboxes to the board
-  hitboxLocal.translateX(-distance);
-  hitboxLocal.translateZ(-distance);
-
-  lineGroup.add(hitboxLocal);
-  rootObject.add(lineGroup);
-}
-
-function createGameOverScreen(winner: string) {
-  const canvasForText = makeLabelCanvas(200, 25, `GAME OVER ${winner} won`);
-
-  const texture = new THREE.CanvasTexture(canvasForText);
-  // because our canvas is likely not a power of 2
-  // in both dimensions set the filtering appropriately.
-  texture.minFilter = THREE.LinearFilter;
-  texture.wrapS = THREE.ClampToEdgeWrapping;
-  texture.wrapT = THREE.ClampToEdgeWrapping;
-
-  const labelMaterial = new THREE.SpriteMaterial({
-    map: texture,
-    transparent: true,
-  });
-
-  const label = new THREE.Sprite(labelMaterial);
-  rootObject.add(label);
-  const labelBaseScale = 0.5;
-  label.scale.x = canvasForText.width * labelBaseScale;
-  label.scale.y = canvasForText.height * labelBaseScale;
-}
-
-function makeLabelCanvas(
-  baseWidth: number,
-  size: number,
-  message: string
-): HTMLCanvasElement {
-  const borderSize = 2;
-  const ctx = document.createElement("canvas").getContext("2d")!;
-  const font = `${size}px bold sans-serif`;
-
-  ctx.font = font;
-  // measure how long the name will be
-  const textWidth = ctx.measureText(message).width;
-
-  const doubleBorderSize = borderSize * 2;
-  const width = baseWidth + doubleBorderSize;
-  const height = size + doubleBorderSize;
-  ctx.canvas.width = width;
-  ctx.canvas.height = height;
-
-  // need to set font again after resizing canvas
-  ctx.font = font;
-  ctx.textBaseline = "middle";
-  ctx.textAlign = "center";
-
-  ctx.fillStyle = "green";
-  ctx.fillRect(0, 0, width, height);
-
-  const scaleFactor = Math.min(1, baseWidth / textWidth);
-  ctx.translate(width / 2, height / 2);
-  ctx.scale(scaleFactor, 1);
-  ctx.fillStyle = "white";
-  ctx.fillText(message, 0, 0);
-
-  return ctx.canvas;
-}
 
 function resizeRendererToDisplaySize(renderer: THREE.Renderer) {
   const pixelRatio = window.devicePixelRatio;
