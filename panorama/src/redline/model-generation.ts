@@ -1,4 +1,4 @@
-import * as THREE from "three";
+import * as THREE from 'three';
 
 export function createCircle(color: number): THREE.Mesh {
   const radius = 1.5;
@@ -11,16 +11,37 @@ export function createCircle(color: number): THREE.Mesh {
     radialSegments,
     tubularSegments
   );
-  const mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.2, metalness: 1 });
+  const mat = new THREE.MeshStandardMaterial({
+    color: color,
+    roughness: 0.2,
+    metalness: 1,
+  });
   const mesh = new THREE.Mesh(geometry, mat);
-
-  geometry.dispose();
-  mat.dispose();
 
   return mesh;
 }
 
-function createLine(length: number = 15): THREE.Mesh {
+export function createCross(color: number): THREE.Group {
+  const mat = new THREE.MeshStandardMaterial({
+    color: color,
+    roughness: 0.2,
+    metalness: 1,
+  });
+  const line1 = createLine(4, mat);
+  line1.rotateZ(Math.PI / -4);
+  const line2 = createLine(4, mat);
+  line2.rotateZ(Math.PI / 4);
+  const crossGroup = new THREE.Group();
+  crossGroup.add(line1);
+  crossGroup.add(line2);
+
+  return crossGroup;
+}
+
+function createLine(
+  length: number = 15,
+  material: THREE.Material | null = null
+): THREE.Mesh {
   const radiusTop = 0.5;
   const radiusBottom = 0.5;
   const height = length;
@@ -32,12 +53,11 @@ function createLine(length: number = 15): THREE.Mesh {
     radialSegments
   );
 
-  const lineMaterial = new THREE.MeshStandardMaterial({ color: 'white', roughness: 0, metalness: 1});
+  const lineMaterial =
+    material ??
+    new THREE.MeshStandardMaterial({ color: "white", emissive: "white" });
 
   const mesh = new THREE.Mesh(geometry, lineMaterial);
-
-  geometry.dispose();
-  lineMaterial.dispose();
 
   return mesh;
 }
@@ -46,15 +66,14 @@ function createBoardHitbox(size: number) {
   const hitboxGeo = new THREE.PlaneGeometry(size, size);
   // TODO: maybe remove double side if annoying
   const hitboxMaterial = new THREE.MeshBasicMaterial({
-    color: 0x83EEFF,
+    color: 0x83eeff,
     side: THREE.DoubleSide,
     transparent: true,
-    opacity: 0.5,
+    opacity: 0.8,
   });
 
   const mesh = new THREE.Mesh(hitboxGeo, hitboxMaterial);
-  hitboxGeo.dispose();
-  hitboxMaterial.dispose();
+
   return mesh;
 }
 
@@ -106,7 +125,6 @@ export function createBoard(rootObject: THREE.Object3D) {
     // name board to later identify it when raycasting
     // TODO: rename this to also include which board it is later
     h.name = i.toString();
-
   });
 
   // align the hitboxes to the board
@@ -118,7 +136,7 @@ export function createBoard(rootObject: THREE.Object3D) {
 }
 
 export function createGameOverScreen(winner: string): THREE.Sprite {
-  const canvasForText = makeLabelCanvas(200, 25, `GAME OVER ${winner} won`);
+  const canvasForText = makeLabelCanvas(200, 25, `GAME OVER ${winner}`);
 
   const texture = new THREE.CanvasTexture(canvasForText);
   // because our canvas is likely not a power of 2
@@ -177,4 +195,3 @@ function makeLabelCanvas(
 
   return ctx.canvas;
 }
-

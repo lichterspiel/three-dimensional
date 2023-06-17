@@ -1,9 +1,9 @@
 export interface PlsInit{
-    gameId: string;
+    gameID: string;
 }
 
 export interface PlayerMove{
-    gameId: string;
-    playerId: string;
+    gameID: string;
+    playerID: string;
     field: number;
 }

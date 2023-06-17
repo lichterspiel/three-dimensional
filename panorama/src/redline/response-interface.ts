@@ -17,3 +17,10 @@ interface ConfirmPlayerMove{
     field: number;
     turn: string;
 }
+
+interface GameLobby {
+    p1: string;
+    isGameRunning: boolean;
+    members: number;
+    gameID: string;
+}

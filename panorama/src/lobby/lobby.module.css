@@ -31,7 +31,7 @@
 }
 
 .joinButton{
-    background: url("../assets/stars.gif");
+    background: url("../assets/327.GIF");
     background-size: 50%;
     border-color: #DA4662;
     z-index: 1;
@@ -57,12 +57,60 @@
     height: 100%;
     color: white;
     text-align: center;
-    margin-top: 5%;;
+    margin-top: 5%;
+    margin-bottom: 5%;
 }
 
 #tv {
-    position: relative;
-    height: 80%;
+    position: absolute;
+    height: 65%;
     left: calc(100% - 50cqw);
+    top: 30%;
     transform: translate(-45%, 0);
 }
+
+.lobby_list {
+    position: relative;
+    z-index: 5;
+    height: 320px;
+    width: 100%;
+    margin-top: 4%;
+    padding: 0;
+    overflow: scroll;
+    text-align: center;
+    list-style-type: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    
+}
+
+.lobby_element:nth-child(even) {
+    border: 2px solid lightblue;
+    background: grey url("../assets/water2.jpg") ;
+    background-size: 40%;
+    background-position: 40% 5%;
+}
+
+.lobby_element {
+    width: 40%;
+    padding: 10px;
+    margin-bottom: 1px;
+    border: 2px solid skyblue;
+    border-radius: 8px;
+    background: grey url("../assets/stars2.jpg");
+    background-size: 50%;
+    background-blend-mode: multiply;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.lobby_element:hover{
+    cursor: pointer;
+    background-blend-mode:hard-light;
+}
+
+
+
