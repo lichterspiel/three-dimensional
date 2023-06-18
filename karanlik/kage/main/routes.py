@@ -3,16 +3,15 @@ from flask_wtf.csrf import generate_csrf
 import uuid
 
 from . import main
-from ..util import util
+from .config import lobbies
+from .. import utils
 from ..lobby import Lobby
-from config import lobbies
 
 
+@utils.add_user_id
 @main.route("/api/session")
 def handle_session():
-    if 'user_id' not in session:
-        session['user_id'] = str(uuid.uuid4())
-        print(session)
+    print(session)
     return '', 204
 
 
@@ -30,8 +29,8 @@ def get_lobbies():
 
 @main.route("/apiT/lobbies")
 def get_lobbies_test():
-    print(jsonify(util.generate_dummy_lobby()))
-    return jsonify(util.generate_dummy_lobby()), 200
+    print(jsonify(utils.generate_dummy_lobby()))
+    return jsonify(utils.generate_dummy_lobby()), 200
 
 
 @main.route("/api/getcsrf", methods=["GET"])
@@ -50,26 +49,32 @@ def get_csrf():
 
 
 #TODO: check here if player already in a game and delete that one if its game over else reconect or forfeit
+@utils.add_user_id
 @main.route("/api/createGame")
-def create_game(rq):
+def create_game():
     game_id = str(uuid.uuid4())
+    print(session)
 
     if game_id not in lobbies:
         lobbies[game_id] = Lobby(session['user_id'])
-        lobbies[game_id].game_id = game_id
+        lobby = lobbies[game_id]
+        lobby.game_id = game_id
     else:
         return 400
 
     return {'gameID': game_id}, 200
 
 
-@main.route("/api/joinGame/<id>")
+@utils.add_user_id
+@main.route("/api/joinGame/<game_id>")
 def join_game(game_id):
-    if game_id in lobbies:
-        if lobbies[game_id].check_player_can_join(session['user_id']):
-            return {'canJoin': True}, 200
-    else:
+    lobby = lobbies.get(game_id)
+    if not lobby: 
         return {'canJoin': False}, 400
 
 
-
+    if game_id in lobbies:
+        if lobby.check_player_can_join(session['user_id']):
+            return {'canJoin': True}, 200
+    else:
+        return {'canJoin': False}, 400

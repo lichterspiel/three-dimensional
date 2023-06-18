@@ -1,2 +1,2 @@
-games = []
-lobbies = []
+games = {}
+lobbies = {}

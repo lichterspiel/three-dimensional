@@ -6,6 +6,7 @@ import GameGui from "./game-gui";
 import initGear3, { cleanupScene } from "./world";
 
 import styles from "./playground.module.css";
+import { API_BASE_URL, WS_BASE_URL } from "../shared/statics";
 
 const Playground: Component = () => {
   const [gameStats, setGameStats] = createSignal(null);
@@ -16,27 +17,19 @@ const Playground: Component = () => {
   let socket: Socket;
   let csrfToken: string;
 
-  const csrf = () => {
-    fetch(`${API_BASE_URL}/getcsrf`, {
-      credentials: "include",
-    })
-      .then((res) => {
-        csrfToken = res.headers.get("X-CSRFToken")!;
-        // console.log(csrfToken);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
-
-  async function initStuff(){
+ 
+ async function initStuff(){
     const fe = await fetch(`${API_BASE_URL}/getcsrf`, {credentials: "include",})
+    csrfToken = fe.headers.get("X-CSRFToken")!;
     const rq = await fetch(`${API_BASE_URL}/joinGame/${params.id}`, {credentials: "include",})
     const rqJson = await rq.json();
+    console.log(rqJson);
+    
 
-    if (!rqJson.canJoin){
+    if (!rqJson['canJoin']){
+        console.log("here");
+        
         navigate('/lobby');
-        return;
     }
 
     socket = io(WS_BASE_URL, {
@@ -47,7 +40,6 @@ const Playground: Component = () => {
      });
 
     socket.on("connect", () => {
-      console.log("connect");
       initGear3(canvasRef!, socket, params.id, gameStats(), setGameStats);
     });
 
@@ -58,8 +50,11 @@ const Playground: Component = () => {
   });
 
   onCleanup(() => {
-    socket.disconnect();
-    socket.close();
+    if (socket){
+        socket.disconnect();
+        socket.close();
+
+    }
 
     cleanupScene();
   });

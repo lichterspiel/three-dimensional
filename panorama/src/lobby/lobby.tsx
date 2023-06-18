@@ -3,6 +3,7 @@ import { Component, createSignal, For, onMount } from 'solid-js';
 
 import tv from '../assets/red_tv.png';
 import styles from './lobby.module.css';
+import { API_BASE_URL } from '../shared/statics';
 
 /*
  * TODO: This component should show at the top 2 buttons one to create a game the other to join a game either via code
@@ -18,8 +19,9 @@ const Lobby: Component = () => {
     getLobbies();
   });
 
-  function createGame(): void {
-      fetch(`${API_BASE_URL}/createGame`)
+  function createGame(){
+
+      fetch(`${API_BASE_URL}/createGame`,{credentials: "include",})
       .then(r => r.json())
       .catch(e => console.log(e))
       .then(r => {

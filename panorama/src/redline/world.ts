@@ -53,7 +53,8 @@ function setupSocket() {
     isGameRunning = true;
     turn = res["turn"];
     playerNumber = res["p1"] == playerID ? 0 : 1;
-    console.log(gameStats);
+    console.log(playerNumber);
+    
 
     setGameStats({
       ...gameStats,
@@ -64,7 +65,7 @@ function setupSocket() {
   });
 
   socket.on("send-id", (r: string) => {
-    console.log(r);
+    console.log("session_id: " + r);
 
     playerID = r;
   });
@@ -72,9 +73,12 @@ function setupSocket() {
   socket.on("confirm-player-move", (r: string) => {
     let res: ConfirmPlayerMove = JSON.parse(r);
 
-    turn = res["turn"];
-    setGameStats({ ...gameStats, turn: res["turn"] });
+    setGameStats({
+          ...gameStats,
+          turn: res["turn"] == playerID ? "You" : "Enemy",
+        });
     spawnPlayerField(`${res["field"]}`);
+    turn = res["turn"];
   });
 
   socket.on("game-over", (r: string) => {
@@ -202,17 +206,18 @@ function fillBoard(board: string[][]) {
       if (board[row][col] != "") {
         let skinNumber =
           board[row][col] == playerID ? playerNumber : (playerNumber + 1) % 2;
-        let c =
-          skinNumber == 0 ? createCircle(0xf782faf) : createCross(0xff82af);
+        console.log("skinNumber fill: "+ skinNumber);
+        
+        let playerObject = skinNumber == 0 ? createCircle(0xf782faf) : createCross(0xff82af);
 
         let objName = row * 3 + col;
         let object = rootObject.getObjectByName(objName.toString())!;
 
         if (object) {
-          c.position.copy(object.position);
-          c.rotation.copy(object.rotation);
+          playerObject.position.copy(object.position);
+          playerObject.rotation.copy(object.rotation);
 
-          object?.parent?.add(c);
+          object?.parent?.add(playerObject);
           object?.removeFromParent();
         }
       }
@@ -223,6 +228,8 @@ function fillBoard(board: string[][]) {
 function spawnPlayerField(pMeshName: string) {
   let skinNumber = turn == playerID ? playerNumber : (playerNumber + 1) % 2;
   let c = skinNumber == 0 ? createCircle(0xf782faf) : createCross(0xff82af);
+  console.log("skinNumber spawn: "+ skinNumber);
+  
 
   let hit: THREE.Object3D | undefined = rootObject.getObjectByName(pMeshName);
   if (hit) {
@@ -286,7 +293,8 @@ function getCanvasRelativePosition(event: MouseEvent) {
 }
 
 export function cleanupScene(): void {
-  renderer.dispose();
+    if (renderer)
+        renderer.dispose();
 }
 
 export default initGear3;
