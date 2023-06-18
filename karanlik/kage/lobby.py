@@ -37,6 +37,14 @@ class Lobby:
         else:
             return False
 
+    def player_is_in_lobby(self, p):
+        if ((p == self.p1 or p == self.p2) and
+                not self.is_game_over and
+                self.is_game_running):
+            return True
+        else:
+            return False
+
     def game_over(self):
         self.is_game_running = False
         self.is_game_over = True

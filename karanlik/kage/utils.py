@@ -25,11 +25,13 @@ def generate_dummy_game(count=20):
 
 def add_user_id(fun):
     @wraps(fun)
-    def decorated_fun():
-        if 'user_id' not in session:
+    def decorated_fun(*args, **kwargs):
+        if session.get("user_id") is None:
             session['user_id'] = str(uuid.uuid4())
 
-        fun()
-    
+        return fun(*args, **kwargs)
     return decorated_fun
-        
+
+def check_user_id():
+    if session.get("user_id") is None:
+        session['user_id'] = str(uuid.uuid4())

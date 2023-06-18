@@ -1,9 +1,9 @@
 import { useNavigate } from '@solidjs/router';
-import { Component, createSignal, For, onMount } from 'solid-js';
+import { Component, createSignal, For, onMount, Show } from 'solid-js';
 
 import tv from '../assets/red_tv.png';
 import styles from './lobby.module.css';
-import { API_BASE_URL } from '../shared/statics';
+import { API_BASE_TEST_URL, API_BASE_URL } from '../shared/statics';
 
 /*
  * TODO: This component should show at the top 2 buttons one to create a game the other to join a game either via code
@@ -13,15 +13,17 @@ import { API_BASE_URL } from '../shared/statics';
 
 const Lobby: Component = () => {
   const [lobbies, setLobbies] = createSignal<GameLobby[] | null>(null);
+  const [runningGame, setRunningGame] = createSignal<GameLobby | null>(null);
   const navigate = useNavigate();
 
   onMount(() => {
     getLobbies();
+    getRunningGame();
   });
 
   function createGame(){
 
-      fetch(`${API_BASE_URL}/createGame`,{credentials: "include",})
+      fetch(`${API_BASE_URL}/createGame`,{credentials: "include"})
       .then(r => r.json())
       .catch(e => console.log(e))
       .then(r => {
@@ -33,16 +35,23 @@ const Lobby: Component = () => {
     navigate(`/game/${gameID}`);
   }
 
+  function getRunningGame() {
+      fetch(`${API_BASE_URL}/runningGame`, {credentials: "include"})
+      .then(r => r.json())
+      .catch(e => console.log(e))
+      .then(r => {
+          if (r) {
+              setRunningGame(r)
+          }
+        })
+
+  }
+
   function openJoinDialog(): void {
   }
 
   function getLobbies(): void {
-    fetch("http://localhost:5000/apiT/lobbies", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
+    fetch(`${API_BASE_TEST_URL}/lobbies`, {credentials: "include"})
       .then((r) => r.json())
       .then((r: GameLobby[]) => {
         console.log(r);
@@ -92,6 +101,19 @@ const Lobby: Component = () => {
           >
             join
           </button>
+        </div>
+
+        <div class={styles.current_game}>
+            <Show when={runningGame() !== null}>
+                <div
+                onclick={() => joinGame(runningGame().gameID)}
+                  class={styles.lobby_element}
+                  >
+                      <div>Player: {runningGame().p1}</div>
+                      <div>Game ID: {runningGame().gameID}</div>
+                      <div>{runningGame().members} / 2</div>
+                </div>
+            </Show>
         </div>
 
         <div class={styles.game_rooms}>

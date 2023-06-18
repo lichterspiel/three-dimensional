@@ -7,6 +7,7 @@ from flask_cors import CORS
 from flask_wtf.csrf import CSRFProtect
 
 socketio = SocketIO(cors_allowed_origins="http://localhost:3000",
+                    supports_credentials=True,
                     manage_session=False)
 
 

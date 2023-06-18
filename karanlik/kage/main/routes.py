@@ -12,16 +12,18 @@ from ..lobby import Lobby
 @main.route("/api/session")
 def handle_session():
     print(session)
-    return '', 204
+    return "", 204
 
 
 @main.route("/api/lobbies")
 def get_lobbies():
     show_list = []
     for lobby in lobbies:
-        if (not lobbies.is_private and
-            not lobbies.is_game_over and
-                not lobbies.is_game_running):
+        if (
+            not lobbies.is_private
+            and not lobbies.is_game_over
+            and not lobbies.is_game_running
+        ):
             show_list.append(lobby.convert_to_obj())
 
     return jsonify(show_list), 200
@@ -38,8 +40,8 @@ def get_csrf():
     token = generate_csrf()
     response = jsonify({"detail": "CSRF cookie set"})
     response.headers.set("X-CSRFToken", token)
-    if 'user_id' not in session:
-        session['user_id'] = str(uuid.uuid4())
+    if "user_id" not in session:
+        session["user_id"] = str(uuid.uuid4())
 
     print("===HTTP===")
     print(session)
@@ -48,33 +50,44 @@ def get_csrf():
     return response, 200
 
 
-#TODO: check here if player already in a game and delete that one if its game over else reconect or forfeit
-@utils.add_user_id
+# TODO: check here if player already in a game and delete that one if its game over else reconect or forfeit
 @main.route("/api/createGame")
 def create_game():
+    utils.check_user_id()
+
     game_id = str(uuid.uuid4())
-    print(session)
 
     if game_id not in lobbies:
-        lobbies[game_id] = Lobby(session['user_id'])
+        lobbies[game_id] = Lobby(session["user_id"])
         lobby = lobbies[game_id]
         lobby.game_id = game_id
     else:
         return 400
 
-    return {'gameID': game_id}, 200
+    return {"gameID": game_id}, 200
 
 
-@utils.add_user_id
 @main.route("/api/joinGame/<game_id>")
 def join_game(game_id):
-    lobby = lobbies.get(game_id)
-    if not lobby: 
-        return {'canJoin': False}, 400
+    utils.check_user_id()
 
+    lobby = lobbies.get(game_id)
+    if not lobby:
+        return {"canJoin": False}, 400
 
     if game_id in lobbies:
-        if lobby.check_player_can_join(session['user_id']):
-            return {'canJoin': True}, 200
+        if lobby.check_player_can_join(session["user_id"]):
+            return {"canJoin": True}, 200
     else:
-        return {'canJoin': False}, 400
+        return {"canJoin": False}, 400
+
+
+@main.route("/api/runningGame")
+def running_game():
+    utils.check_user_id()
+
+    for lobby in lobbies:
+        if lobby.player_is_in_lobby(session["user_id"]):
+            return lobby.convert_to_obj(), 200
+
+    return "", 204

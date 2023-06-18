@@ -37,19 +37,11 @@
     z-index: 1;
 }
 
-#arcade_machine_left {
-    position: relative;
-    top: 0;
-    left: -50%;
-    height: 90%;
-}
-
-#arcade_machine_right{
-    position: relative;
-    top: 0;
-    left: -50%;
-    height: 90%;
-    transform: scaleX(-1);
+.current_game {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .game_rooms {
