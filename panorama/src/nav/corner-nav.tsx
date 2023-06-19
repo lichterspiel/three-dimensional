@@ -6,7 +6,7 @@ import bolt from '../assets/bolt.gif';
 import star from '../assets/star.gif';
 import world from '../assets/world.gif';
 import worldStatic from '../assets/world.png';
-import GifOnHover from '../shared/gif-on-hover';
+import GifOnHover from '../shared/gif/gif-on-hover';
 import styles from './corner-nav.module.css';
 
 const CornerNav: Component = () => {

@@ -23,6 +23,7 @@ def generate_dummy_game(count=20):
 
     return games
 
+
 def add_user_id(fun):
     @wraps(fun)
     def decorated_fun(*args, **kwargs):
@@ -31,6 +32,7 @@ def add_user_id(fun):
 
         return fun(*args, **kwargs)
     return decorated_fun
+
 
 def check_user_id():
     if session.get("user_id") is None:

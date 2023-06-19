@@ -1,2 +1,3 @@
 games = {}
 lobbies = {}
+players = {}

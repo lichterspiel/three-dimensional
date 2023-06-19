@@ -3,7 +3,7 @@ import { Component, createSignal, For, onMount, Show } from 'solid-js';
 
 import tv from '../assets/red_tv.png';
 import styles from './lobby.module.css';
-import { API_BASE_TEST_URL, API_BASE_URL } from '../shared/statics';
+import { API_BASE_TEST_URL, API_BASE_URL } from '../shared/constants/statics';
 
 /*
  * TODO: This component should show at the top 2 buttons one to create a game the other to join a game either via code
@@ -31,8 +31,13 @@ const Lobby: Component = () => {
       })
   }
 
-  function joinGame(gameID: string): void {
-    navigate(`/game/${gameID}`);
+  async function joinGame(gameID: string) {
+    const rq = await fetch(`${API_BASE_URL}/joinGame/${gameID}`, {credentials: "include",})
+    const rqJson = await rq.json();
+
+    if (rqJson['canJoin']){
+        navigate(`/game/${gameID}`);
+    }
   }
 
   function getRunningGame() {
@@ -103,22 +108,21 @@ const Lobby: Component = () => {
           </button>
         </div>
 
-        <div class={styles.current_game}>
+        <div class={styles.current_game_container}>
             <Show when={runningGame() !== null}>
                 <div
                 onclick={() => joinGame(runningGame().gameID)}
-                  class={styles.lobby_element}
+                  class={styles.current_game}
                   >
-                      <div>Player: {runningGame().p1}</div>
-                      <div>Game ID: {runningGame().gameID}</div>
-                      <div>{runningGame().members} / 2</div>
+                    <div>
+                        Resume Game
+                    </div>
                 </div>
             </Show>
         </div>
 
         <div class={styles.game_rooms}>
           <h1>Rooms</h1>
-          <img src={tv} id={styles.tv} />
           <ul class={styles.lobby_list}>
             <For each={lobbies()}>
               {(lobby, i) => (

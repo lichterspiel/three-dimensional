@@ -7,7 +7,7 @@ import { render } from 'solid-js/web';
 import Login from './auth/login';
 import Home from './home/home';
 import Lobby from './lobby/lobby';
-import Playground from './redline/playground';
+import Playground from './redline/playground/playground';
 import CornerNav from './nav/corner-nav';
 
 render(() => (

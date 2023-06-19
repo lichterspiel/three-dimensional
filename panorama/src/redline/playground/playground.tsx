@@ -2,11 +2,11 @@ import { useParams, useNavigate } from "@solidjs/router";
 import { Socket, io } from "socket.io-client";
 import { Component, createSignal, onCleanup, onMount } from "solid-js";
 
-import GameGui from "./game-gui";
+import GameGui from "../gameGui/game-gui";
 import initGear3, { cleanupScene } from "./world";
 
 import styles from "./playground.module.css";
-import { API_BASE_URL, WS_BASE_URL } from "../shared/statics";
+import { API_BASE_URL, WS_BASE_URL } from "../../shared/constants/statics";
 
 const Playground: Component = () => {
   const [gameStats, setGameStats] = createSignal(null);
@@ -45,6 +45,10 @@ const Playground: Component = () => {
 
   }
 
+ function handleSurrender(): void {
+     socket.emit("player-surrender", {gameID: params.id})
+ }
+
   onMount(() => {
       initStuff();
   });
@@ -64,7 +68,7 @@ const Playground: Component = () => {
       <div class={styles.container}>
         <canvas ref={canvasRef} class={styles.game}></canvas>
         <div id={styles.gameStats}>
-          <GameGui gameStats={gameStats()} />
+          <GameGui gameStats={gameStats()} handleSurrender={handleSurrender} />
         </div>
       </div>
     </>

@@ -5,7 +5,7 @@ import json
 from .. import socketio
 from ..game_board import GameBoard
 
-from .config import lobbies, games
+from .config import lobbies, games, players
 
 
 @socketio.on("connect")
@@ -55,6 +55,7 @@ def handle_player_move(res):
         lobby.game_over()
 
         print("WOOOOOOOOONNNNNNNNNNNNN")
+        players[session["user_id"]] = ""
         emit("game-over", json.dumps({"winner": player_id}), to=game_id)
 
         del game
@@ -77,6 +78,8 @@ def handle_player_surrender(res):
     player_id = session["user_id"]
 
     lobby.game_over()
+
+    players[session["user_id"]] = ""
 
     emit(
         "confirm-surrender",

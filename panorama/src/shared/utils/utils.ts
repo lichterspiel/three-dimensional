@@ -1,4 +1,4 @@
-import { API_BASE_URL } from "./statics";
+import { API_BASE_URL } from "../constants/statics";
 
  export async function getCsrfToken(){
     let csrfToken = ''

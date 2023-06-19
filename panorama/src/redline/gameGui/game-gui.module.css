@@ -17,8 +17,9 @@
 #turn {
     background: url("../assets/bubblee.jpg");
     color: white;
-    width: 250px;
+    width: 300px;
     text-align: center;
     border-radius: 10px;
     border: grey outset 3px;
+    font-size: 2rem;;
 }

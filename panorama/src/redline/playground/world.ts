@@ -2,8 +2,8 @@ import { Socket } from 'socket.io-client';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
-import { createBoard, createCircle, createCross, createGameOverScreen } from './model-generation';
-import { PlayerMove } from './request-interface';
+import { createBoard, createCircle, createCross, createGameOverScreen } from '../model-generation';
+import { PlayerMove } from '../request-interface';
 
 let canvas: HTMLCanvasElement;
 let renderer: THREE.WebGLRenderer;
@@ -99,7 +99,7 @@ function setupSocket() {
   });
 
 
-  socket.on("surrender", (r: string) => {
+  socket.on("confirm-surrender", (r: string) => {
     let res = JSON.parse(r);
 
     const gameOverText = res["winner"] == playerID ? "You won the enemy surrendered" : "You surrendered";

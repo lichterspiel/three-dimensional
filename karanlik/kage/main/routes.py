@@ -3,7 +3,7 @@ from flask_wtf.csrf import generate_csrf
 import uuid
 
 from . import main
-from .config import lobbies
+from .config import lobbies, players
 from .. import utils
 from ..lobby import Lobby
 
@@ -18,7 +18,7 @@ def handle_session():
 @main.route("/api/lobbies")
 def get_lobbies():
     show_list = []
-    for lobby in lobbies:
+    for lobby in lobbies.values():
         if (
             not lobbies.is_private
             and not lobbies.is_game_over
@@ -52,41 +52,51 @@ def get_csrf():
 
 # TODO: check here if player already in a game and delete that one if its game over else reconect or forfeit
 @main.route("/api/createGame")
+@utils.add_user_id
 def create_game():
-    utils.check_user_id()
 
     game_id = str(uuid.uuid4())
+    playerOldGame = players.get(session["user_id"])
+    if playerOldGame:
+        if not lobbies[playerOldGame].is_game_over:
+            return {"gameID": playerOldGame}
+            # surrender old round and make new
 
     if game_id not in lobbies:
         lobbies[game_id] = Lobby(session["user_id"])
         lobby = lobbies[game_id]
         lobby.game_id = game_id
+        players[session["user_id"]] = game_id
     else:
-        return 400
+        return "", 400
 
     return {"gameID": game_id}, 200
 
 
 @main.route("/api/joinGame/<game_id>")
+@utils.add_user_id
 def join_game(game_id):
-    utils.check_user_id()
-
     lobby = lobbies.get(game_id)
     if not lobby:
         return {"canJoin": False}, 400
 
     if game_id in lobbies:
         if lobby.check_player_can_join(session["user_id"]):
+            players[session["user_id"]] = game_id
             return {"canJoin": True}, 200
     else:
         return {"canJoin": False}, 400
 
 
 @main.route("/api/runningGame")
+@utils.add_user_id
 def running_game():
-    utils.check_user_id()
 
-    for lobby in lobbies:
+    print(lobbies)
+    for lobby in lobbies.values():
+        print("LOOOP")
+        print(lobby)
+        print("LOOOP")
         if lobby.player_is_in_lobby(session["user_id"]):
             return lobby.convert_to_obj(), 200
 
