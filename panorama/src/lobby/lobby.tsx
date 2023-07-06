@@ -1,9 +1,11 @@
 import { useNavigate } from '@solidjs/router';
 import { Component, createSignal, For, onMount, Show } from 'solid-js';
 
-import tv from '../assets/red_tv.png';
+import welcome from '../assets/Welcome.png';
+import graffitiLine from '../assets/LineGraffiti.png';
 import styles from './lobby.module.css';
 import { API_BASE_TEST_URL, API_BASE_URL } from '../shared/constants/statics';
+import GameOverModal from '../shared/modal/game-over-modal';
 
 /*
  * TODO: This component should show at the top 2 buttons one to create a game the other to join a game either via code
@@ -87,8 +89,15 @@ const Lobby: Component = () => {
   }
 
   return (
-    <>
-      <div class="container" id={styles.content}>
+  <>
+    <div id={styles.background_image}></div>
+    <div class="container" id={styles.container_background}>
+      <div id={styles.content}>
+        <header id={styles.header}>
+            <img src={graffitiLine} id={styles.graffitiLineL}/>
+            <img src={welcome} id={styles.welcome}/>
+            <img src={graffitiLine} id={styles.graffitiLineR}/>
+        </header>
         <div class={styles.buttonContainer}>
           <button
             class={`${styles.gameButton} ${styles.createButton}`}
@@ -96,7 +105,7 @@ const Lobby: Component = () => {
             onMouseMove={handleButtonHover}
             onMouseLeave={handleMouseLeave}
           >
-            create
+           create
           </button>
           <button
             class={`${styles.gameButton} ${styles.joinButton}`}
@@ -111,7 +120,7 @@ const Lobby: Component = () => {
         <div class={styles.current_game_container}>
             <Show when={runningGame() !== null}>
                 <div
-                onclick={() => joinGame(runningGame().gameID)}
+                onclick={() => joinGame(runningGame()['gameID'])}
                   class={styles.current_game}
                   >
                     <div>
@@ -122,7 +131,7 @@ const Lobby: Component = () => {
         </div>
 
         <div class={styles.game_rooms}>
-          <h1>Rooms</h1>
+          <h1 id={styles.rooms_heading}>Rooms</h1>
           <ul class={styles.lobby_list}>
             <For each={lobbies()}>
               {(lobby, i) => (
@@ -139,6 +148,7 @@ const Lobby: Component = () => {
           </ul>
         </div>
       </div>
+    </div>
     </>
   );
 };
