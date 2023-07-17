@@ -1,17 +1,23 @@
-import { Component, Show } from 'solid-js';
+import { Component} from 'solid-js';
 
 import styles from './game-gui.module.css';
+import { GameStatsI } from '../playground/playground';
 
-const GameGui: Component<{ gameStats: { turn: string } | null, handleSurrender: Function }> = (props) => {
+interface GameGuiProps {
+    gameStats: GameStatsI;
+    handleSurrender: Function;
+}
+
+const GameGui: Component<GameGuiProps> = (props) => {
 
   return (
     <>
-    <Show when={props.gameStats !== null}>
-          <div class={styles.gui}>
-            <button id={styles.quit} onClick={() => props.handleSurrender()}>Surrender</button>
-            <div id={styles.turn}>Turn: {props.gameStats["turn"]}</div>
-          </div>
-      </Show>
+        <div id={styles.background}>
+            <div class={styles.gui}>
+              <button id={styles.quit} onClick={() => props.handleSurrender()}>Surrender</button>
+              <div id={styles.turn}>Turn: {props.gameStats.turn || "loading turn..."}</div>
+            </div>
+        </div>
     </>
   );
 };

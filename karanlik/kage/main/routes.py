@@ -94,9 +94,6 @@ def running_game():
 
     print(lobbies)
     for lobby in lobbies.values():
-        print("LOOOP")
-        print(lobby)
-        print("LOOOP")
         if lobby.player_is_in_lobby(session["user_id"]):
             return lobby.convert_to_obj(), 200
 

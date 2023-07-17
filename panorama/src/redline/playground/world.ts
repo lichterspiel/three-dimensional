@@ -21,13 +21,11 @@ let playerNumber: number;
 let isGameRunning: boolean;
 let turn: string;
 let setGameStats: Function;
-let gameStats: any;
 
 function initGear3(
   c: HTMLCanvasElement,
   s: Socket,
   gId: string,
-  gmStats: any,
   setStats: Function
 ) {
   canvas = c;
@@ -35,7 +33,6 @@ function initGear3(
   gameID = gId;
   isGameRunning = false;
   setGameStats = setStats;
-  gameStats = gmStats;
 
   setupSocket();
   initThree();
@@ -44,70 +41,17 @@ function initGear3(
 
 function setupSocket() {
   // this should come when everyone joined and then send every information to everyone
-  socket.on("load-game", (r: string) => {
-    console.log("load");
+  socket.on("load-game", (r: string) => { loadGame(r) });
 
-    let res: LoadGame = JSON.parse(r);
-    console.log(res, playerID);
+  socket.on("send-id", (r: string) => { playerID = r });
 
-    isGameRunning = true;
-    turn = res["turn"];
-    playerNumber = res["p1"] == playerID ? 0 : 1;
-    console.log(playerNumber);
-    
+  socket.on("confirm-player-move", (r: string) => { confirmMove(r) });
 
-    setGameStats({
-      ...gameStats,
-      turn: res["turn"] == playerID ? "You" : "Enemy",
-    });
+  socket.on("game-over", (r: string) => { gameOver(r) });
 
-    if (res["board"]) fillBoard(res["board"]);
-  });
+  socket.on("tie", () => { gameTie() });
 
-  socket.on("send-id", (r: string) => {
-    console.log("session_id: " + r);
-
-    playerID = r;
-  });
-
-  socket.on("confirm-player-move", (r: string) => {
-    let res: ConfirmPlayerMove = JSON.parse(r);
-
-    setGameStats({
-          ...gameStats,
-          turn: res["turn"] == playerID ? "You" : "Enemy",
-        });
-    spawnPlayerField(`${res["field"]}`);
-    turn = res["turn"];
-  });
-
-  socket.on("game-over", (r: string) => {
-    let res = JSON.parse(r);
-
-    const gameOverText = res["winner"] == playerID ? "You won" : "You lost";
-    const label = createGameOverScreen(gameOverText);
-
-    rootObject.add(label);
-    isGameRunning = false;
-  });
-
-  socket.on("tie", () => {
-    const label = createGameOverScreen("It's a tie");
-
-    rootObject.add(label);
-    isGameRunning = false;
-  });
-
-
-  socket.on("confirm-surrender", (r: string) => {
-    let res = JSON.parse(r);
-
-    const gameOverText = res["winner"] == playerID ? "You won the enemy surrendered" : "You surrendered";
-    const label = createGameOverScreen(gameOverText);
-
-    rootObject.add(label);
-    isGameRunning = false;
-  });
+  socket.on("confirm-surrender", (r: string) => { confirmSurrender(r) });
 }
 
 function initGame() {
@@ -269,6 +213,63 @@ const pickField = (event: MouseEvent): void => {
     }
   }
 };
+
+function loadGame(r: string){
+    let res: LoadGame = JSON.parse(r);
+    console.log(res, playerID);
+
+    isGameRunning = true;
+    turn = res["turn"];
+    playerNumber = res["p1"] == playerID ? 0 : 1;
+    console.log(playerNumber);
+    
+
+    setGameStats("turn",res["turn"] == playerID ? "You" : "Enemy");
+
+    if (res["board"]) fillBoard(res["board"]);
+
+}
+
+function confirmMove(r: string){
+    let res: ConfirmPlayerMove = JSON.parse(r);
+
+    setGameStats("turn", res["turn"] == playerID ? "You" : "Enemy");
+    spawnPlayerField(`${res["field"]}`);
+    turn = res["turn"];
+
+}
+
+function gameOver(r: string){
+     let res = JSON.parse(r);
+
+    const gameOverText = res["winner"] == playerID ? "You won" : "You lost";
+    const label = createGameOverScreen(gameOverText);
+    setGameStats("winner", gameOverText);
+
+    rootObject.add(label);
+    isGameRunning = false;
+}
+
+function gameTie(){
+    const label = createGameOverScreen("It's a tie");
+
+    setGameStats("winner", "It's a Tie");
+    rootObject.add(label);
+    isGameRunning = false;
+
+}
+
+function confirmSurrender(r: string){
+    let res = JSON.parse(r);
+
+    const gameOverText = res["winner"] == playerID ? "You won the enemy surrendered" : "You surrendered";
+    const label = createGameOverScreen(gameOverText);
+    setGameStats("winner", gameOverText);
+
+    rootObject.add(label);
+    isGameRunning = false;
+
+}
 
 function resizeRendererToDisplaySize(renderer: THREE.Renderer) {
   const pixelRatio = window.devicePixelRatio;

@@ -2,11 +2,11 @@ import { Component } from 'solid-js';
 
 const Login: Component = () => {
     return (
-    <>
-        <div class="container">
-            <div></div>
-        </div>
-    </>
+        <>
+            <div class="container">
+                <div></div>
+            </div>
+        </>
     )
 
 }

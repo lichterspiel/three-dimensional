@@ -1,64 +1,48 @@
-.modal {
-  background-color: var(--color-text);
-  color: var(--color-background);
-  inset: 0;
-  min-height: 100vh;
-  overflow-y: auto;
-  position: fixed;
-  width: 100vw;
-  z-index: var(--layer6);
+.backdrop{
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    backdrop-filter: blur(2px);
+    background: rgba(0,0,0,0.4);
+
 }
 
-&__backdrop {
-    background-color: var(--color-background-opaque);
-    left: 50%;
-    min-height: 100vh;
-    min-width: 100vw;
-    overflow: hidden;
-    position: fixed;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    z-index: var(--layer5);
-}
-  @media (min-width: 768px) {
-    border-radius: var(--rounded-corners);
-    left: 50%;
-    max-height: calc(100vh - (var(--spacing-gutter-sm) * 2));
-    max-width: var(--lg);
-    min-height: calc(var(--lg) / 2);
+.modal {
+    background-color: #242324;
+    color: white;
+    inset: 0;
     overflow-y: auto;
     position: fixed;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: calc(100vw - (var(--spacing-gutter-sm) * 2));
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {
-      font-size: 2rem;
-    }
-  }
-}
-
-.GameOverModal {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-
-    background: #242324;
-    position: absolute;
-    inset: 0;
-    margin: auto;
-    width: 100%;
     max-width: 400px;
+    width: 100%;
     height: fit-content;
     max-height: 100%;
     box-shadow: 0 5px 10px 2px black; 
     padding: 20px;
     text-align: center;
-    border-radius: 6px;
+    border-radius: 4px;
+    margin: auto;
+}
+
+.modalHeader {
+    height: fit-content;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: end;
+}
+
+.headerClose {
+    background-color: red;
+    border: 1px solid black; 
+    border-radius: 50%;
+    height: 13px;
+    width: 13px;
+    cursor: pointer;
+}
+
+.modalContent {
 }
 
 .actionPanel {

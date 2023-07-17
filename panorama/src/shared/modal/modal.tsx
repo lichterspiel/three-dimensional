@@ -1,25 +1,53 @@
-import {Component, JSX, Show, createSignal, onCleanup, onMount} from 'solid-js';
-import {Portal} from 'solid-js/web';
+import { Component, createSignal, JSX, onCleanup, onMount, Show, Signal } from 'solid-js';
+import { Portal } from 'solid-js/web';
+
+import styles from './modal.module.css';
 
 interface ModalProps {
     children: JSX.Element;
+    cancelText?: string;
+    confirmText?: string;
+    isOpen: boolean;
+    setIsOpen: Function;
+    fun1?: Function;
+    fun2?: Function;
+
 }
 
 
 const Modal: Component<ModalProps> = (props) => {
-    const [isOpen, setIsOpen] = createSignal(false);
-    // Open the modal when the component is mounted
-    onMount( () => setIsOpen(true));
-    onCleanup( () => setIsOpen(false));
+    onCleanup(() => closeModal());
+
+    function closeModal() {
+        props.setIsOpen(false);
+    }
+
     return (
-        <Show when={isOpen()}>
-            <Portal mount={document.getElementById('modal') as Node}>
-                {props.children}
+        <Show when={props.isOpen}>
+            <Portal mount={document.body}>
+                <div class={styles.backdrop}></div>
+                <div class={styles.modal}>
+                    <div class={styles.modalHeader}>
+                        <button onClick={closeModal} class={styles.headerClose}></button>
+                    </div>
+
+                    <div class={styles.modalContent}>
+                        {props.children}
+                    </div>
+
+                    <div class={styles.actionPanel}>
+                        <button class={styles.actionBtn} onclick={() => props.fun1 ? props.fun1() : closeModal()}>
+                            {props.cancelText ?? "Close"}
+                        </button>
+                        <button class={styles.actionBtn} onclick={() => props.fun2 ? props.fun2() : closeModal()}>
+                            {props.confirmText ?? "Confirm"}
+                        </button>
+
+                    </div>
+                </div>
             </Portal>
         </Show>
-   )
+    )
 };
 
-
 export default Modal;
-
