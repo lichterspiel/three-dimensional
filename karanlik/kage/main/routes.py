@@ -78,14 +78,14 @@ def create_game():
 def join_game(game_id):
     lobby = lobbies.get(game_id)
     if not lobby:
-        return {"canJoin": False}, 400
+        return {"canJoin": False}, 200
 
     if game_id in lobbies:
         if lobby.check_player_can_join(session["user_id"]):
             players[session["user_id"]] = game_id
             return {"canJoin": True}, 200
     else:
-        return {"canJoin": False}, 400
+        return {"canJoin": False}, 200
 
 
 @main.route("/api/runningGame")
@@ -95,6 +95,6 @@ def running_game():
     print(lobbies)
     for lobby in lobbies.values():
         if lobby.player_is_in_lobby(session["user_id"]):
-            return lobby.convert_to_obj(), 200
+            return {"runningGame": True, "lobby": lobby.convert_to_obj()}, 200
 
-    return "", 204
+    return {"runningGame": False}, 200

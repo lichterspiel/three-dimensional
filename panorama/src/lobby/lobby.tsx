@@ -14,19 +14,19 @@ import styles from "./lobby.module.css";
 
 async function getLobbies(){
     const res = await fetch(`${API_BASE_TEST_URL}/lobbies`, { credentials: "include" })
-    const json = await res.json()
-    return json;
+    const j = await res.json()
+    return j;
 }
 
 async function getRunningGame() {
     const res = await fetch(`${API_BASE_URL}/runningGame`, { credentials: "include" })
-    const json = await res.json()
-    if (json == '') return undefined
-    return json;
+    const j = await res.json()
+    if (!j["runningGame"]) { return null }
+    return j;
 }
 
 const Lobby: Component = () => {
-    const [lobbies] = createResource<GameLobby[]>(getLobbies);
+    const [lobbies] = createResource<GameLobby[]>(getLobbies, {initialValue: []});
     const [runningGame] = createResource<GameLobby>(getRunningGame);
     const navigate = useNavigate();
 
@@ -82,56 +82,50 @@ const Lobby: Component = () => {
             <div class="container" id={styles.container_background}>
                 <div id={styles.content}>
                     <header id={styles.header}>
-                        <img src={graffitiLine} id={styles.graffitiLineL} />
+                        <img src={graffitiLine} id={styles.graffiti_line_l} />
                         <img src={welcome} id={styles.welcome} />
-                        <img src={graffitiLine} id={styles.graffitiLineR} />
+                        <img src={graffitiLine} id={styles.graffiti_line_r} />
                     </header>
-                    <div class={styles.buttonContainer}>
+                    <div class={styles.button_container}>
                         <button
-                            class={`${styles.gameButton} ${styles.createButton}`}
+                            class={`${styles.game_button} ${styles.create_button}`}
                             onClick={createGame}
                             onMouseMove={handleButtonHover}
                             onMouseLeave={handleMouseLeave}
                         >
                             create
                         </button>
+                    <Show when={runningGame()}>
                         <button
-                            class={`${styles.gameButton} ${styles.joinButton}`}
-                            onclick={openJoinDialog}
+                            onclick={() => joinGame(runningGame()!["gameID"])}
+                            class={`${styles.game_button} ${styles.current_game}`}
                             onMouseMove={handleButtonHover}
                             onMouseLeave={handleMouseLeave}
-                        >
-                            join
-                        </button>
-                    </div>
-
-                    <div class={styles.current_game_container}>
-                        <Show when={runningGame()}>
-                            <div
-                                onclick={() => joinGame(runningGame()!["gameID"])}
-                                class={styles.current_game}
                             >
-                                <div>Resume Game</div>
-                            </div>
+                                resume 
+                            </button>
                         </Show>
                     </div>
-
-                    <div class={styles.game_rooms}>
-                        <h1 id={styles.rooms_heading}>Rooms</h1>
-                        <ul class={styles.lobby_list}>
-                            <For each={lobbies()}>
-                                {(lobby, i) => (
-                                    <li
-                                        onclick={() => joinGame(lobby.gameID)}
-                                        class={styles.lobby_element}
-                                    >
-                                        <div>Player: {lobby.p1}</div>
-                                        <div>Game ID: {lobby.gameID}</div>
-                                        <div>{lobby.members} / 2</div>
-                                    </li>
-                                )}
-                            </For>
-                        </ul>
+                    <div class={styles.rooms}>
+                        <h1 id={styles.rooms_heading}>Open Rooms</h1>
+                        <div class={styles.rooms_container}>
+                            <ul class={styles.rooms_list}>
+                                <Show when={ lobbies() && lobbies().length > 0} fallback={<h2>Loading....</h2>}>
+                                    <For each={lobbies()}>
+                                        {(lobby, i) => (
+                                            <li
+                                            onclick={() => joinGame(lobby.gameID)}
+                                            class={styles.room}
+                                            >
+                                                <div>Player: {lobby.p1}</div>
+                                                <div>Game ID: {lobby.gameID}</div>
+                                                <div>{lobby.members} / 2</div>
+                                            </li>
+                                        )}
+                                    </For>
+                                </Show>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>

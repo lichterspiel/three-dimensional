@@ -1,0 +1,39 @@
+.h{
+   --color-primary-0: #7A2BD0;	/* Main Primary color */
+   --color-primary-1: #AB76E4;
+   --color-primary-2: #904DD9;
+   --color-primary-3: #670CC8;
+   --color-primary-4: #4B0892;
+
+   --color-secondary-1-0: #D41EB7;	/* Main Secondary color (1) */
+   --color-secondary-1-1: #E66ED3;
+   --color-secondary-1-2: #DC43C4;
+   --color-secondary-1-3: #CD00AD;
+   --color-secondary-1-4: #980080;
+
+   --color-secondary-2-0: #4237D3;	/* Main Secondary color (2) */
+   --color-secondary-2-1: #867FE6;
+   --color-secondary-2-2: #6158DB;
+   --color-secondary-2-3: #2316CC;
+   --color-secondary-2-4: #190F96;
+}
+
+:root {
+    --color-primary-0: #651AFE;	/* Main Primary color */
+    --color-primary-1: #9E71FC;
+    --color-primary-2: #8246FE;
+    --color-primary-3: #5807FD;
+    --color-primary-4: #4002C0;
+
+    --color-secondary-1-0: #C808FE;	/* Main Secondary color (1) */
+    --color-secondary-1-1: #DB66FB;
+    --color-secondary-1-2: #D238FD;
+    --color-secondary-1-3: #C602FD;
+    --color-secondary-1-4: #9301BC;
+
+    --color-secondary-2-0: #1F47FE;	/* Main Secondary color (2) */
+    --color-secondary-2-1: #748CFC;
+    --color-secondary-2-2: #4A6AFE;
+    --color-secondary-2-3: #0834FD;
+    --color-secondary-2-4: #0224C0;
+}

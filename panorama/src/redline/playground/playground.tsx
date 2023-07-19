@@ -92,7 +92,7 @@ const Playground: Component = () => {
                     setIsOpen={setIsModalOpen}
                     fun1={navigateHome} 
                     fun2={revenge} 
-                    cancelText="return Home"
+                    cancelText="Home"
                     confirmText="Revenge">
                {gameStats.winner}
             </Modal>
