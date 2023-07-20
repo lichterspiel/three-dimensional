@@ -1,3 +1,6 @@
+from kage.game_board import GameBoard
+
+
 class Lobby:
 
     p1 = None
@@ -8,6 +11,7 @@ class Lobby:
     is_private = False
     members = 0
     winner = None
+    game = None
 
     def __init__(self, p1, is_private=False):
         self.p1 = p1
@@ -46,6 +50,12 @@ class Lobby:
         else:
             return False
 
+    def check_players_joined(self):
+        if self.p1 and self.p2:
+            return True
+        else:
+            return False
+
     def game_over(self):
         self.is_game_running = False
         self.is_game_over = True
@@ -55,10 +65,17 @@ class Lobby:
 
     def set_winner(self, p):
         self.winner = self.p1 if p == self.p1 else self.p2
+    
+    def start_new_game(self):
+        self.game = GameBoard(self.p1, self.p2)
+        self.is_game_running = True
+        self.is_game_over = False
+        self.winner = ""
 
     def convert_to_obj(self):
         return {
                 'p1': self.p1,
+                'p2': self.p2 if self.p2 else "",
                 'isGameRunning': self.is_game_running,
                 'members': self.members,
                 'gameID': self.game_id,

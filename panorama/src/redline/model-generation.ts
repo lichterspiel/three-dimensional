@@ -135,6 +135,7 @@ export function createBoard(rootObject: THREE.Object3D) {
   rootObject.add(lineGroup);
 }
 
+/*
 export function createGameOverScreen(winner: string): THREE.Sprite {
   const canvasForText = makeLabelCanvas(200, 25, `GAME OVER ${winner}`);
 
@@ -195,3 +196,4 @@ function makeLabelCanvas(
 
   return ctx.canvas;
 }
+*/

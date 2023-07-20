@@ -2,7 +2,7 @@ import { Socket } from 'socket.io-client';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
-import { createBoard, createCircle, createCross, createGameOverScreen } from '../model-generation';
+import { createBoard, createCircle, createCross } from '../model-generation';
 import { PlayerMove } from '../request-interface';
 
 let canvas: HTMLCanvasElement;
@@ -26,11 +26,13 @@ function initGear3(
   c: HTMLCanvasElement,
   s: Socket,
   gId: string,
+  uID: string,
   setStats: Function
 ) {
   canvas = c;
   socket = s;
   gameID = gId;
+  playerID = uID;
   isGameRunning = false;
   setGameStats = setStats;
 
@@ -55,8 +57,7 @@ function setupSocket() {
 }
 
 function initGame() {
-  let req = { gameID: gameID };
-  socket.emit("player-join", req);
+  socket.emit("game-join");
 
   createBoard(rootObject);
   gameLoop();
@@ -139,7 +140,7 @@ function render() {
 }
 
 function updateBoard(hit: number) {
-  let req: PlayerMove = { gameID: gameID, playerID: playerID, field: hit };
+  let req: PlayerMove = { field: hit };
 
   socket.emit("player-move", req);
 }
@@ -227,10 +228,11 @@ function loadGame(r: string){
     setGameStats("turn",res["turn"] == playerID ? "You" : "Enemy");
 
     if (res["board"]) fillBoard(res["board"]);
-
 }
 
 function confirmMove(r: string){
+    console.log(r);
+    
     let res: ConfirmPlayerMove = JSON.parse(r);
 
     setGameStats("turn", res["turn"] == playerID ? "You" : "Enemy");
@@ -243,10 +245,7 @@ function gameOver(r: string){
      let res = JSON.parse(r);
 
     const gameOverText = res["winner"] == playerID ? "You won" : "You lost";
-    const label = createGameOverScreen(gameOverText);
     setGameStats("winner", gameOverText);
-
-    rootObject.add(label);
     isGameRunning = false;
 }
 

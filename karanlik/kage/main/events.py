@@ -1,11 +1,11 @@
 from flask import session, request
-from flask_socketio import emit, join_room, leave_room
+from flask_socketio import emit, join_room 
 import json
 
 from .. import socketio
 from ..game_board import GameBoard
 
-from .config import lobbies, games, players
+from .config import lobbies, players
 
 
 @socketio.on("connect")
@@ -17,31 +17,47 @@ def on_connect(rq):
     emit("send-id", session.get("user_id"), to=request.sid)
 
 
-@socketio.on("player-join")
-def handle_player_join(rq):
-    game_id = rq["gameID"]
+@socketio.on("lobby-join")
+def handle_lobby_join():
+    game_id = players[session["user_id"]]
     lobby = lobbies[game_id]
 
     join_room(game_id)
-    emit("send-id", session.get("user_id"), to=request.sid)
-
     if lobby.join_player(session["user_id"]):
-        initGame(game_id, lobby.p1, lobby.p2)
-    elif lobby.check_player_in_running_game(session["user_id"]):
-        game = games[game_id]
+        emit("lobby-joined", lobby.convert_to_obj(), to=game_id)
+    elif lobby.p1 == session["user_id"]:
+        emit("lobby-joined", lobby.convert_to_obj(), to=game_id)
+
+
+@socketio.on("game-join")
+def handle_game_join():
+    game_id = players[session["user_id"]]
+    lobby = lobbies[game_id]
+
+    if lobby.check_player_in_running_game(session["user_id"]):
+        game = lobby.game
         emit("load-game", game.convert_to_obj(), to=request.sid)
     elif lobby.is_game_over:
         emit("game-over", json.dumps({"winner": lobby.winner}), to=request.sid)
 
 
-@socketio.on("player-move")
-def handle_player_move(res):
-    game_id = res["gameID"]
-    game = games[game_id]
+@socketio.on("start-game")
+def handle_start_game():
+    game_id = players[session["user_id"]]
     lobby = lobbies[game_id]
+    if (lobby.members == 2):
+        lobby.start_new_game()
+        emit("game-started", to=game_id)
+
+
+@socketio.on("player-move")
+def handle_player_move(rq):
+    game_id = players[session["user_id"]]
+    lobby = lobbies[game_id]
+    game = lobby.game
 
     player_id = session["user_id"]
-    move = res["field"]
+    move = rq["field"]
 
     if lobby.is_game_over:
         return
@@ -62,22 +78,20 @@ def handle_player_move(res):
         emit("game-over", json.dumps({"winner": lobby.winner}), to=game_id)
 
         del game
-        leave_room(game_id)
-    elif game.check_if_tie():
-        lobbies[game_id].game_over()
 
+    elif game.check_if_tie():
+        lobby.game_over()
         emit("tie", to=game_id)
 
         if game:
             del game
-        leave_room(game_id)
 
 
 @socketio.on("player-surrender")
-def handle_player_surrender(res):
-    game_id = res["gameID"]
-    game = games[game_id]
+def handle_player_surrender():
+    game_id = players[session["user_id"]]
     lobby = lobbies[game_id]
+    game = lobby.game
     player_id = session["user_id"]
 
     lobby.game_over()
@@ -92,17 +106,3 @@ def handle_player_surrender(res):
     )
 
     del game
-    leave_room(game_id)
-
-
-def initGame(game_id, p1, p2):
-    lobby = lobbies[game_id]
-
-    if game_id not in games:
-        # TODO: put later player id from registration
-        games[game_id] = GameBoard(p1, p2)
-        game = games[game_id]
-
-    lobby.is_game_running = True
-
-    emit("load-game", game.convert_to_obj(), to=game_id)

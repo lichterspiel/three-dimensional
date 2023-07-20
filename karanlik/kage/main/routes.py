@@ -8,8 +8,8 @@ from .. import utils
 from ..lobby import Lobby
 
 
-@utils.add_user_id
 @main.route("/api/session")
+@utils.add_user_id
 def handle_session():
     print(session)
     return "", 204
@@ -18,11 +18,11 @@ def handle_session():
 @main.route("/api/lobbies")
 def get_lobbies():
     show_list = []
-    for lobby in lobbies.values():
+    for lobby in lobbies:
         if (
-            not lobbies.is_private
-            and not lobbies.is_game_over
-            and not lobbies.is_game_running
+            not lobby.is_private
+            and not lobby.is_game_over
+            and not lobby.is_game_running
         ):
             show_list.append(lobby.convert_to_obj())
 
@@ -54,18 +54,16 @@ def get_csrf():
 @main.route("/api/createGame")
 @utils.add_user_id
 def create_game():
-
     game_id = str(uuid.uuid4())
     playerOldGame = players.get(session["user_id"])
     if playerOldGame:
         if not lobbies[playerOldGame].is_game_over:
             return {"gameID": playerOldGame}
-            # surrender old round and make new
+            #TODO:  surrender old round and make new
 
     if game_id not in lobbies:
         lobbies[game_id] = Lobby(session["user_id"])
-        lobby = lobbies[game_id]
-        lobby.game_id = game_id
+        lobbies[game_id].game_id = game_id
         players[session["user_id"]] = game_id
     else:
         return "", 400
@@ -83,7 +81,9 @@ def join_game(game_id):
     if game_id in lobbies:
         if lobby.check_player_can_join(session["user_id"]):
             players[session["user_id"]] = game_id
-            return {"canJoin": True}, 200
+            return {"canJoin": True,
+                    "gameRunning": lobby.is_game_running,
+                    "userID": session["user_id"]}, 200
     else:
         return {"canJoin": False}, 200
 

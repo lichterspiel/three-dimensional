@@ -9,6 +9,8 @@ import Home from './home/home';
 import Lobby from './lobby/lobby';
 import Playground from './redline/playground/playground';
 import CornerNav from './nav/corner-nav';
+import About from './about/about';
+import WaitingRoom from './lobby/waiting-room';
 
 render(() => (
         <>
@@ -17,7 +19,9 @@ render(() => (
                 <Routes>
                     <Route path="/" component={Home}/>
                     <Route path="/login" component={Login}/>
+                    <Route path="/about" component={About}/>
                     <Route path="/lobby" component={Lobby}/>
+                    <Route path="/lobby/:id" component={WaitingRoom}/>
                     <Route path="/game/:id" component={Playground}/>
                     <Route path="/*" element={<Navigate href="/"/>}/>
                 </Routes>

@@ -13,7 +13,7 @@ import styles from "./lobby.module.css";
  */
 
 async function getLobbies(){
-    const res = await fetch(`${API_BASE_TEST_URL}/lobbies`, { credentials: "include" })
+    const res = await fetch(`${API_BASE_URL}/lobbies`, { credentials: "include" })
     const j = await res.json()
     return j;
 }
@@ -35,13 +35,10 @@ const Lobby: Component = () => {
         getRunningGame();
     });
 
-    function createGame() {
-        fetch(`${API_BASE_URL}/createGame`, { credentials: "include" })
-            .then((r) => r.json())
-            .catch((e) => console.log(e))
-            .then((r) => {
-                navigate(`/game/${r.gameID}`);
-            });
+    async function createGame() {
+        let res = await fetch(`${API_BASE_URL}/createGame`, { credentials: "include" });
+        let j = await res.json()
+        navigate(`/lobby/${j.gameID}`);
     }
 
     async function joinGame(gameID: string) {
