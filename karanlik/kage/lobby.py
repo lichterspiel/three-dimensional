@@ -7,6 +7,7 @@ class Lobby:
     is_game_over = False
     is_private = False
     members = 0
+    winner = None
 
     def __init__(self, p1, is_private=False):
         self.p1 = p1
@@ -51,6 +52,9 @@ class Lobby:
 
     def get_other_player(self, p):
         return self.p1 if p == self.p2 else self.p2
+
+    def set_winner(self, p):
+        self.winner = self.p1 if p == self.p1 else self.p2
 
     def convert_to_obj(self):
         return {

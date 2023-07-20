@@ -30,6 +30,8 @@ def handle_player_join(rq):
     elif lobby.check_player_in_running_game(session["user_id"]):
         game = games[game_id]
         emit("load-game", game.convert_to_obj(), to=request.sid)
+    elif lobby.is_game_over:
+        emit("game-over", json.dumps({"winner": lobby.winner}), to=request.sid)
 
 
 @socketio.on("player-move")
@@ -56,7 +58,8 @@ def handle_player_move(res):
 
         print("WOOOOOOOOONNNNNNNNNNNNN")
         players[session["user_id"]] = ""
-        emit("game-over", json.dumps({"winner": player_id}), to=game_id)
+        lobby.set_winner(session["user_id"])
+        emit("game-over", json.dumps({"winner": lobby.winner}), to=game_id)
 
         del game
         leave_room(game_id)
@@ -80,6 +83,7 @@ def handle_player_surrender(res):
     lobby.game_over()
 
     players[session["user_id"]] = ""
+    lobby.set_winner(lobby.get_other_player(player_id))
 
     emit(
         "confirm-surrender",

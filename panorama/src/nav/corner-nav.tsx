@@ -22,6 +22,9 @@ const CornerNav: Component = () => {
     const content = document.createElement("div");
     content.innerText = target.getAttribute("data-name") ?? "null";
     content.style.color = "white";
+    content.style.fontWeight = "600";
+    content.style.backdropFilter = "blur(10px)";
+    content.style.padding = "2px";
     target.after(content);
   }
 
@@ -72,7 +75,7 @@ const CornerNav: Component = () => {
         />
       </A>
       <A
-        href="/lobby"
+        href="/about"
         class={styles.link}
         style={{
           top: navClick() ? "125px" : "0",
@@ -82,7 +85,7 @@ const CornerNav: Component = () => {
         <img
           src={bluePlanet}
           id={styles.left}
-          data-name="left"
+          data-name="about"
           onclick={toggleNav}
           onMouseOver={showDescription}
           onMouseLeave={closeDescription}
