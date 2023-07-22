@@ -250,10 +250,7 @@ function gameOver(r: string){
 }
 
 function gameTie(){
-    const label = createGameOverScreen("It's a tie");
-
     setGameStats("winner", "It's a Tie");
-    rootObject.add(label);
     isGameRunning = false;
 
 }
@@ -262,10 +259,7 @@ function confirmSurrender(r: string){
     let res = JSON.parse(r);
 
     const gameOverText = res["winner"] == playerID ? "You won the enemy surrendered" : "You surrendered";
-    const label = createGameOverScreen(gameOverText);
     setGameStats("winner", gameOverText);
-
-    rootObject.add(label);
     isGameRunning = false;
 
 }

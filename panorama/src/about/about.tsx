@@ -1,6 +1,6 @@
-import { Component } from "solid-js"
+import { Component } from "solid-js";
 
-import styles from "./about.module.css"
+import styles from "./about.module.css";
 
 const About: Component = () => {
     return (

@@ -1,26 +1,24 @@
-interface InitGame{
-    board: string[][];
-    turn: string;
-    count: number;
+interface InitGame {
+  board: string[][];
+  turn: string;
+  count: number;
 }
 
 interface LoadGame {
-    board: string[][];
-    turn: string;
-    p1: string;
-    p2: string; 
+  board: string[][];
+  turn: string;
+  p1: string;
+  p2: string;
 }
 
-
-
-interface ConfirmPlayerMove{
-    field: number;
-    turn: string;
+interface ConfirmPlayerMove {
+  field: number;
+  turn: string;
 }
 
 interface GameLobby {
-    p1: string;
-    isGameRunning: boolean;
-    members: number;
-    gameID: string;
+  p1: string;
+  isGameRunning: boolean;
+  members: number;
+  gameID: string;
 }

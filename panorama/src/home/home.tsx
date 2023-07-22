@@ -1,9 +1,9 @@
-import { A } from '@solidjs/router';
-import { Component } from 'solid-js';
+import { A } from "@solidjs/router";
+import { Component } from "solid-js";
 
-import akira_pill from '../assets/akira_pill.mp4';
-import play from '../assets/play_water.gif';
-import styles from './home.module.css';
+import akira_pill from "../assets/akira_pill.mp4";
+import play from "../assets/play_water.gif";
+import styles from "./home.module.css";
 
 const Home: Component = () => {
   return (

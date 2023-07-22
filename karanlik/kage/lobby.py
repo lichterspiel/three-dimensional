@@ -2,16 +2,15 @@ from kage.game_board import GameBoard
 
 
 class Lobby:
-
+    id = None
     p1 = None
     p2 = None
-    game_id = None
-    is_game_running = False
-    is_game_over = False
-    is_private = False
     members = 0
     winner = None
     game = None
+    is_game_running = False
+    is_game_over = False
+    is_private = False
 
     def __init__(self, p1, is_private=False):
         self.p1 = p1
@@ -26,8 +25,6 @@ class Lobby:
 
         self.p2 = p
         self.members = 2
-        self.is_game_running = True
-
         return True
 
     def check_player_in_running_game(self, p):
@@ -43,9 +40,11 @@ class Lobby:
             return False
 
     def player_is_in_lobby(self, p):
-        if ((p == self.p1 or p == self.p2) and
-                not self.is_game_over and
-                self.is_game_running):
+        if (
+            (p == self.p1 or p == self.p2)
+            and not self.is_game_over
+            and self.is_game_running
+        ):
             return True
         else:
             return False
@@ -65,18 +64,42 @@ class Lobby:
 
     def set_winner(self, p):
         self.winner = self.p1 if p == self.p1 else self.p2
-    
+
     def start_new_game(self):
         self.game = GameBoard(self.p1, self.p2)
         self.is_game_running = True
         self.is_game_over = False
         self.winner = ""
 
+    def player_leave(self, p):
+        if p == self.p1:
+            if self.p2:
+                self.p1 = self.p2
+            else:
+                self.p1 = None
+
+            self.p2 = None
+            self.members -= 1
+            if self.is_game_running:
+                self.set_winner(self.p1)
+                self.game_over()
+                return True
+
+        if p == self.p2:
+            self.p2 = None
+            self.members -= 1
+            if self.is_game_running:
+                self.set_winner(self.p1)
+                self.game_over()
+                return True
+        
+        return False
+
     def convert_to_obj(self):
         return {
-                'p1': self.p1,
-                'p2': self.p2 if self.p2 else "",
-                'isGameRunning': self.is_game_running,
-                'members': self.members,
-                'gameID': self.game_id,
-                }
+            "p1": self.p1,
+            "p2": self.p2 if self.p2 else "",
+            "isGameRunning": self.is_game_running,
+            "members": self.members,
+            "gameID": self.id,
+        }

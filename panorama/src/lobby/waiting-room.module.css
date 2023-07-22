@@ -3,5 +3,46 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: start;
+    z-index: 2;
+    backdrop-filter: blur(1px);
+    width: 80%;
+    height: 100%;
+    margin: 0 auto;
+    background: var(--color-secondary-2-1);
+}
+
+#background_image {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    background: url("../assets/stars2.jpg");
+}
+
+.header {
+    width: 100%;
+    height: 80px;
+    margin-bottom: 10px;
+    padding: 0 5px;
+    background: var(--color-secondary-2-2);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#title {
+    margin: 0 10px;
+}
+
+.lavalamp {
+    height: 100%;
+}
+
+#waiting_room {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
 }

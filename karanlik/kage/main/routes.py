@@ -1,11 +1,12 @@
-from flask import session, jsonify
-from flask_wtf.csrf import generate_csrf
 import uuid
 
-from . import main
-from .config import lobbies, players
+from flask import jsonify, session
+from flask_wtf.csrf import generate_csrf
+
 from .. import utils
 from ..lobby import Lobby
+from . import main
+from .config import lobbies, players
 
 
 @main.route("/api/session")
@@ -18,7 +19,8 @@ def handle_session():
 @main.route("/api/lobbies")
 def get_lobbies():
     show_list = []
-    for lobby in lobbies:
+    for lobby in lobbies.values():
+        print(lobby)
         if (
             not lobby.is_private
             and not lobby.is_game_over
@@ -49,31 +51,36 @@ def get_csrf():
 
     return response, 200
 
-
-# TODO: check here if player already in a game and delete that one if its game over else reconect or forfeit
-@main.route("/api/createGame")
+'''
+This inizializes the lobby and joins the creator into the lobby
+for now this reconects to the old game if it is still running so the player needs to surrender 
+'''
+@main.route("/api/createLobby")
 @utils.add_user_id
-def create_game():
+def create_Lobby():
     game_id = str(uuid.uuid4())
+    '''
     playerOldGame = players.get(session["user_id"])
     if playerOldGame:
         if not lobbies[playerOldGame].is_game_over:
             return {"gameID": playerOldGame}
-            #TODO:  surrender old round and make new
+    '''
 
     if game_id not in lobbies:
         lobbies[game_id] = Lobby(session["user_id"])
-        lobbies[game_id].game_id = game_id
+        lobbies[game_id].id = game_id
         players[session["user_id"]] = game_id
     else:
         return "", 400
 
     return {"gameID": game_id}, 200
 
-
-@main.route("/api/joinGame/<game_id>")
+'''
+This is to 1. give the joining user an id and 2. check if he should be able to connect
+'''
+@main.route("/api/joinLobby/<game_id>")
 @utils.add_user_id
-def join_game(game_id):
+def join_lobby(game_id):
     lobby = lobbies.get(game_id)
     if not lobby:
         return {"canJoin": False}, 200
@@ -87,11 +94,9 @@ def join_game(game_id):
     else:
         return {"canJoin": False}, 200
 
-
 @main.route("/api/runningGame")
 @utils.add_user_id
 def running_game():
-
     print(lobbies)
     for lobby in lobbies.values():
         if lobby.player_is_in_lobby(session["user_id"]):

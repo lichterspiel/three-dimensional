@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from "three";
 
 export function createCircle(color: number): THREE.Mesh {
   const radius = 1.5;
@@ -14,7 +14,8 @@ export function createCircle(color: number): THREE.Mesh {
   const mat = new THREE.MeshStandardMaterial({
     color: color,
     roughness: 0.2,
-    metalness: 1,
+    metalness: 0.5,
+    emissive: color,
   });
   const mesh = new THREE.Mesh(geometry, mat);
 
@@ -25,7 +26,8 @@ export function createCross(color: number): THREE.Group {
   const mat = new THREE.MeshStandardMaterial({
     color: color,
     roughness: 0.2,
-    metalness: 1,
+    metalness: 0.5,
+    emissive: color,
   });
   const line1 = createLine(4, mat);
   line1.rotateZ(Math.PI / -4);

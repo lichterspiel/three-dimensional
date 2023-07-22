@@ -1,4 +1,4 @@
-import { Component, createSignal, JSX, onCleanup, onMount, Show, Signal } from 'solid-js';
+import { Component, JSX, onCleanup, Show } from 'solid-js';
 import { Portal } from 'solid-js/web';
 
 import styles from './modal.module.css';
