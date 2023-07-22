@@ -64,6 +64,16 @@ function createLine(
   return mesh;
 }
 
+export function create3DBoard(root: THREE.Object3D) {
+    const boards = [
+        createBoard(root, "0"),
+        createBoard(root, "1"),
+        createBoard(root, "2"),
+    ]
+
+    return boards;
+}
+
 function createBoardHitbox(size: number) {
   const hitboxGeo = new THREE.PlaneGeometry(size, size);
   // TODO: maybe remove double side if annoying
@@ -79,7 +89,7 @@ function createBoardHitbox(size: number) {
   return mesh;
 }
 
-export function createBoard(rootObject: THREE.Object3D) {
+export function createBoard(rootObject: THREE.Object3D, prefix="0") {
   const lineGroup = new THREE.Group();
   const lines: THREE.Mesh[] = [
     createLine(),
@@ -100,7 +110,7 @@ export function createBoard(rootObject: THREE.Object3D) {
     createBoardHitbox(distance),
     createBoardHitbox(distance),
   ];
-  const hitboxLocal = new THREE.Object3D();
+  const hitboxLocal = new THREE.Group();
 
   lines.forEach((l, i) => {
     l.rotateX(Math.PI / 2);
@@ -126,7 +136,7 @@ export function createBoard(rootObject: THREE.Object3D) {
 
     // name board to later identify it when raycasting
     // TODO: rename this to also include which board it is later
-    h.name = i.toString();
+    h.name = `${prefix}${i.toString()}`
   });
 
   // align the hitboxes to the board
@@ -134,7 +144,9 @@ export function createBoard(rootObject: THREE.Object3D) {
   hitboxLocal.translateZ(-distance);
 
   lineGroup.add(hitboxLocal);
+  lineGroup.position.setY(parseInt(prefix) * 8)
   rootObject.add(lineGroup);
+  return lineGroup
 }
 
 /*

@@ -1,9 +1,14 @@
-import { Socket } from 'socket.io-client';
-import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { Socket } from "socket.io-client";
+import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
-import { createBoard, createCircle, createCross } from '../model-generation';
-import { PlayerMove } from '../request-interface';
+import { GUI } from "dat.gui";
+import {
+  create3DBoard,
+  createCircle,
+  createCross
+} from "../model-generation";
+import { PlayerMove } from "../request-interface";
 
 let canvas: HTMLCanvasElement;
 let renderer: THREE.WebGLRenderer;
@@ -12,6 +17,7 @@ let scene: THREE.Scene;
 let rootObject: THREE.Object3D;
 let raycaster: THREE.Raycaster;
 let pickPosition: THREE.Vector2;
+let gameBoards: THREE.Group[];
 let controls: any;
 let socket: Socket;
 
@@ -21,45 +27,72 @@ let playerNumber: number;
 let isGameRunning: boolean;
 let turn: string;
 let setGameStats: Function;
+let focusedBoard: { [key: string]: Function } = {};
+
+let isDebug: boolean = false;
+
+enum FocusStates {
+  BOTTOM,
+  MID,
+  TOP,
+  ALL,
+}
 
 function initGear3(
-  c: HTMLCanvasElement,
-  s: Socket,
-  gId: string,
-  uID: string,
-  setStats: Function
+  p_canvas: HTMLCanvasElement,
+  p_socket: Socket | undefined,
+  p_gameID: string,
+  p_playerID: string,
+  p_setStats: Function,
+  p_isDebug: boolean
 ) {
-  canvas = c;
-  socket = s;
-  gameID = gId;
-  playerID = uID;
+  canvas = p_canvas;
+  gameID = p_gameID;
+  playerID = p_playerID;
   isGameRunning = false;
-  setGameStats = setStats;
+  setGameStats = p_setStats;
+  isDebug = p_isDebug;
 
-  setupSocket();
+  if (!p_isDebug && p_socket) {
+    socket = p_socket;
+    setupSocket();
+  } else {
+    isGameRunning = true;
+    turn = "0";
+  }
   initThree();
   initGame();
 }
 
 function setupSocket() {
   // this should come when everyone joined and then send every information to everyone
-  socket.on("load-game", (r: string) => { loadGame(r) });
+  socket.on("load-game", (r: string) => {
+    loadGame(r);
+  });
 
-  socket.on("send-id", (r: string) => { playerID = r });
+  socket.on("confirm-player-move", (r: string) => {
+    confirmMove(r);
+  });
 
-  socket.on("confirm-player-move", (r: string) => { confirmMove(r) });
+  socket.on("game-over", (r: string) => {
+    gameOver(r);
+  });
 
-  socket.on("game-over", (r: string) => { gameOver(r) });
+  socket.on("tie", () => {
+    gameTie();
+  });
 
-  socket.on("tie", () => { gameTie() });
-
-  socket.on("confirm-surrender", (r: string) => { confirmSurrender(r) });
+  socket.on("confirm-surrender", (r: string) => {
+    confirmSurrender(r);
+  });
 }
 
 function initGame() {
-  socket.emit("game-join");
+  if (!isDebug) {
+    socket.emit("game-join");
+  }
 
-  createBoard(rootObject);
+  gameBoards = create3DBoard(rootObject);
   gameLoop();
 
   window.addEventListener("mousedown", pickField);
@@ -118,6 +151,22 @@ function initThree(): void {
 
   const axesHelper = new THREE.AxesHelper(50);
   scene.add(axesHelper);
+
+  const gui = new GUI();
+  const viewFolder = gui.addFolder("Focus Board");
+
+  function createBoardCallback(board: string, n: number) {
+    focusedBoard[board] = function () {
+      focusBoard(n);
+    };
+    viewFolder.add(focusedBoard, board);
+  }
+  viewFolder.open();
+
+  createBoardCallback("all", FocusStates.ALL);
+  createBoardCallback("top", FocusStates.TOP);
+  createBoardCallback("mid", FocusStates.MID);
+  createBoardCallback("bottom", FocusStates.BOTTOM);
 }
 
 function gameLoop() {
@@ -139,10 +188,14 @@ function render() {
   renderer.render(scene, camera);
 }
 
-function updateBoard(hit: number) {
-  let req: PlayerMove = { field: hit };
+function updateBoard(hit: string) {
+  let req: PlayerMove = { field: parseInt(hit) };
 
-  socket.emit("player-move", req);
+  if (!isDebug) {
+    socket.emit("player-move", req);
+  } else {
+    confirmMoveLocal(hit);
+  }
 }
 
 function fillBoard(board: string[][]) {
@@ -151,9 +204,10 @@ function fillBoard(board: string[][]) {
       if (board[row][col] != "") {
         let skinNumber =
           board[row][col] == playerID ? playerNumber : (playerNumber + 1) % 2;
-        console.log("skinNumber fill: "+ skinNumber);
-        
-        let playerObject = skinNumber == 0 ? createCircle(0xf782faf) : createCross(0xff82af);
+        console.log("skinNumber fill: " + skinNumber);
+
+        let playerObject =
+          skinNumber == 0 ? createCircle(0xf782faf) : createCross(0xff82af);
 
         let objName = row * 3 + col;
         let object = rootObject.getObjectByName(objName.toString())!;
@@ -172,9 +226,12 @@ function fillBoard(board: string[][]) {
 
 function spawnPlayerField(pMeshName: string) {
   let skinNumber = turn == playerID ? playerNumber : (playerNumber + 1) % 2;
+  if (isDebug) {
+    skinNumber = parseInt(turn);
+  }
   let c = skinNumber == 0 ? createCircle(0xf782faf) : createCross(0xff82af);
-  console.log("skinNumber spawn: "+ skinNumber);
-  
+
+  console.log("skinNumber spawn: " + skinNumber);
 
   let hit: THREE.Object3D | undefined = rootObject.getObjectByName(pMeshName);
   if (hit) {
@@ -192,7 +249,7 @@ const pickField = (event: MouseEvent): void => {
   if (!isGameRunning) {
     return;
   }
-  if (turn != playerID) {
+  if (!isDebug && turn != playerID) {
     return;
   }
 
@@ -209,59 +266,90 @@ const pickField = (event: MouseEvent): void => {
     if (intersectedObjects[0].object.type === "Mesh") {
       const picked: THREE.Mesh = intersectedObjects[0].object as THREE.Mesh;
       if (picked.geometry.type === "PlaneGeometry") {
-        updateBoard(parseInt(picked.name));
+        updateBoard(picked.name);
       }
     }
   }
 };
 
-function loadGame(r: string){
-    let res: LoadGame = JSON.parse(r);
-    console.log(res, playerID);
+function loadGame(r: string) {
+  let res: LoadGame = JSON.parse(r);
+  console.log(res, playerID);
 
-    isGameRunning = true;
-    turn = res["turn"];
-    playerNumber = res["p1"] == playerID ? 0 : 1;
-    console.log(playerNumber);
-    
+  isGameRunning = true;
+  turn = res["turn"];
+  playerNumber = res["p1"] == playerID ? 0 : 1;
+  console.log(playerNumber);
 
-    setGameStats("turn",res["turn"] == playerID ? "You" : "Enemy");
+  setGameStats("turn", res["turn"] == playerID ? "You" : "Enemy");
 
-    if (res["board"]) fillBoard(res["board"]);
+  if (res["board"]) fillBoard(res["board"]);
 }
 
-function confirmMove(r: string){
-    console.log(r);
-    
-    let res: ConfirmPlayerMove = JSON.parse(r);
+function confirmMove(r: string) {
+  console.log(r);
 
-    setGameStats("turn", res["turn"] == playerID ? "You" : "Enemy");
-    spawnPlayerField(`${res["field"]}`);
-    turn = res["turn"];
+  let res: ConfirmPlayerMove = JSON.parse(r);
 
+  setGameStats("turn", res["turn"] == playerID ? "You" : "Enemy");
+  spawnPlayerField(`${res["field"]}`);
+  turn = res["turn"];
 }
 
-function gameOver(r: string){
-     let res = JSON.parse(r);
-
-    const gameOverText = res["winner"] == playerID ? "You won" : "You lost";
-    setGameStats("winner", gameOverText);
-    isGameRunning = false;
+function confirmMoveLocal(field: string) {
+  console.log(field);
+  spawnPlayerField(field);
+  turn = ((parseInt(turn) + 1) % 2).toString();
 }
 
-function gameTie(){
-    setGameStats("winner", "It's a Tie");
-    isGameRunning = false;
+function gameOver(r: string) {
+  let res = JSON.parse(r);
 
+  const gameOverText = res["winner"] == playerID ? "You won" : "You lost";
+  setGameStats("winner", gameOverText);
+  isGameRunning = false;
 }
 
-function confirmSurrender(r: string){
-    let res = JSON.parse(r);
+function gameTie() {
+  setGameStats("winner", "It's a Tie");
+  isGameRunning = false;
+}
 
-    const gameOverText = res["winner"] == playerID ? "You won the enemy surrendered" : "You surrendered";
-    setGameStats("winner", gameOverText);
-    isGameRunning = false;
+function confirmSurrender(r: string) {
+  let res = JSON.parse(r);
 
+  const gameOverText =
+    res["winner"] == playerID
+      ? "You won the enemy surrendered"
+      : "You surrendered";
+  setGameStats("winner", gameOverText);
+  isGameRunning = false;
+}
+
+function focusBoard(board: number) {
+  switch (board) {
+    case FocusStates.BOTTOM:
+      gameBoards[0].visible = true;
+      gameBoards[1].visible = false;
+      gameBoards[2].visible = false;
+      break;
+    case FocusStates.MID:
+      gameBoards[0].visible = false;
+      gameBoards[1].visible = true;
+      gameBoards[2].visible = false;
+      break;
+    case FocusStates.TOP:
+      gameBoards[0].visible = false;
+      gameBoards[1].visible = false;
+      gameBoards[2].visible = true;
+      break;
+
+    case FocusStates.ALL:
+      gameBoards[0].visible = true;
+      gameBoards[1].visible = true;
+      gameBoards[2].visible = true;
+      break;
+  }
 }
 
 function resizeRendererToDisplaySize(renderer: THREE.Renderer) {
@@ -287,8 +375,7 @@ function getCanvasRelativePosition(event: MouseEvent) {
 }
 
 export function cleanupScene(): void {
-    if (renderer)
-        renderer.dispose();
+  if (renderer) renderer.dispose();
 }
 
 export default initGear3;

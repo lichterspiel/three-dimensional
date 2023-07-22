@@ -6,7 +6,6 @@ import { API_BASE_URL, WS_BASE_URL } from "../shared/constants/statics";
 import styles from "./waiting-room.module.css";
 
 import lavalamp from "../assets/lavalamp.gif";
-import seperator from "../assets/seperator.png";
 
 const WaitingRoom: Component = () => {
   const params = useParams();

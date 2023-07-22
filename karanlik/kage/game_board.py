@@ -15,7 +15,7 @@ class GameBoard:
     def __init__(self, ply1, ply2):
         self.p1 = ply1
         self.p2 = ply2
-        self.board = [[self.empty_cell for i in range(3)] for i in range(3)]
+        self.board = [[[self.empty_cell for i in range(3)] for i in range(3)] for i in range(3)]
         self.turn = self.p1
 
     def make_move(self, player, move):
@@ -29,9 +29,17 @@ class GameBoard:
 
         self.turn = self.p1 if self.turn == self.p2 else self.p2
         return True
+    
+    def check_if_won_3D(self, lastMove, player):
+        # Diagonal Kreuz
+        # AntiDiagonal Kreuz
+        # Straight line top to bottom (column)
+        # einmal horizontal über 3 ebenen
+        # einmal vertikal über 3 ebenen
+        pass
 
     # TODO: definetly rework this haha
-    def check_if_won(self, lastMove, player):
+    def check_if_won_2D(self, lastMove, player):
         pp = pprint.PrettyPrinter(indent=4)
         pp.pprint(self.board)
 
@@ -79,7 +87,6 @@ class GameBoard:
             for column in row:
                 if column == "":
                     return False
-
         return True
 
     def convert_to_obj(self):

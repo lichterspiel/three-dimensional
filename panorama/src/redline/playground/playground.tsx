@@ -22,10 +22,11 @@ export interface GameStatsI {
 }
 
 interface PlaygroundProps {
-  userID: string;
-  gameID: string;
-  socket: Socket;
-  showGameFun: Setter<boolean>;
+  userID?: string;
+  gameID?: string;
+  socket?: Socket;
+  showGameFun?: Setter<boolean>;
+  debug?: boolean;
 }
 
 const Playground: Component<PlaygroundProps> = (props) => {
@@ -34,7 +35,7 @@ const Playground: Component<PlaygroundProps> = (props) => {
   const navigate = useNavigate();
 
   let canvasRef: HTMLCanvasElement | undefined;
-  let socket: Socket = props.socket;
+  let socket: Socket | undefined = props.socket;
 
   async function initStuff() {
     /*
@@ -45,11 +46,18 @@ const Playground: Component<PlaygroundProps> = (props) => {
         csrfToken = fe.headers.get("X-CSRFToken")!;
         */
 
-    initGear3(canvasRef!, socket, props.gameID, props.userID, setGameStats);
+    if (props.debug){
+        initGear3(canvasRef!, socket, "black-lemonade", "blondey", setGameStats, props.debug);
+    }
+    else {
+        initGear3(canvasRef!, socket, props.gameID, props.userID, setGameStats, props.debug);
+    }
   }
 
   function handleSurrender(): void {
-    socket.emit("player-surrender");
+      if (props.debug && socket){
+        socket.emit("player-surrender");
+      }
   }
 
   // effect to check everytime the gameStats is updated if the game is finished
@@ -70,7 +78,9 @@ const Playground: Component<PlaygroundProps> = (props) => {
   });
 
   function revenge() {
-    props.showGameFun(false);
+      if (!props.debug && props.showGameFun){ 
+        props.showGameFun(false);
+    }
   }
 
   function navigateHome() {
