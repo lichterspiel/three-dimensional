@@ -1,9 +1,10 @@
-from functools import wraps
 import uuid
+from functools import wraps
+
 from flask import session
 
-from .lobby import Lobby
 from .game_board import GameBoard
+from .lobby import Lobby
 
 
 def generate_dummy_lobby(count=20):
@@ -28,12 +29,13 @@ def add_user_id(fun):
     @wraps(fun)
     def decorated_fun(*args, **kwargs):
         if session.get("user_id") is None:
-            session['user_id'] = str(uuid.uuid4())
+            session["user_id"] = str(uuid.uuid4())
 
         return fun(*args, **kwargs)
+
     return decorated_fun
 
 
 def check_user_id():
     if session.get("user_id") is None:
-        session['user_id'] = str(uuid.uuid4())
+        session["user_id"] = str(uuid.uuid4())

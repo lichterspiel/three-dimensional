@@ -1,27 +1,28 @@
-import math
 import json
+import math
 import pprint
 
 
 class GameBoard:
-
     magicSquare = [
-                [8, 1, 6],
-                [3, 5, 7],
-                [4, 9, 2],
-              ]
+        [8, 1, 6],
+        [3, 5, 7],
+        [4, 9, 2],
+    ]
 
     empty_cell = ""
 
     def __init__(self, ply1, ply2):
         self.p1 = ply1
         self.p2 = ply2
-        self.board = [[self.empty_cell for i in range(3)]for i in range(3)]
+        self.board = [[self.empty_cell for i in range(3)] for i in range(3)]
         self.turn = self.p1
 
     def make_move(self, player, move):
-        if (self.turn != player or
-                self.board[math.floor(move / 3)][move % 3] != self.empty_cell):
+        if (
+            self.turn != player
+            or self.board[math.floor(move / 3)][move % 3] != self.empty_cell
+        ):
             return False
 
         self.board[math.floor(move / 3)][move % 3] = player
@@ -29,7 +30,7 @@ class GameBoard:
         self.turn = self.p1 if self.turn == self.p2 else self.p2
         return True
 
-# TODO: definetly rework this haha
+    # TODO: definetly rework this haha
     def check_if_won(self, lastMove, player):
         pp = pprint.PrettyPrinter(indent=4)
         pp.pprint(self.board)
@@ -76,15 +77,17 @@ class GameBoard:
     def check_if_tie(self):
         for row in self.board:
             for column in row:
-                if column == '':
+                if column == "":
                     return False
 
         return True
 
     def convert_to_obj(self):
-        return json.dumps({
-            "board": self.board,
-            "turn": self.turn,
-            "p1": self.p1,
-            "p2": self.p2,
-        })
+        return json.dumps(
+            {
+                "board": self.board,
+                "turn": self.turn,
+                "p1": self.p1,
+                "p2": self.p2,
+            }
+        )

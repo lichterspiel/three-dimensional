@@ -1,14 +1,17 @@
 import os
 
 from flask import Flask
-from flask_session import Session
-from flask_socketio import SocketIO
 from flask_cors import CORS
+from flask_socketio import SocketIO
 from flask_wtf.csrf import CSRFProtect
 
-socketio = SocketIO(cors_allowed_origins="http://localhost:3000",
-                    supports_credentials=True,
-                    manage_session=False)
+from flask_session import Session
+
+socketio = SocketIO(
+    cors_allowed_origins="http://localhost:3000",
+    supports_credentials=True,
+    manage_session=False,
+)
 
 
 def create_app(test_config=None, debug=False):
@@ -23,7 +26,7 @@ def create_app(test_config=None, debug=False):
         REMEMBER_COOKIE_HTTPONLY=True,
         SESSION_PERMANENT=False,
         SESSION_COOKIE_SAMESITE="Lax",
-        DATABASE=os.path.join(app.instance_path, 'karanlik.sqlite'),
+        DATABASE=os.path.join(app.instance_path, "karanlik.sqlite"),
     )
 
     CORS(
@@ -52,6 +55,7 @@ def create_app(test_config=None, debug=False):
         pass
 
     from .main import main as main_blueprint
+
     app.register_blueprint(main_blueprint)
 
     socketio.init_app(app)

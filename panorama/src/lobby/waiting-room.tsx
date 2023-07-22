@@ -6,6 +6,7 @@ import { API_BASE_URL, WS_BASE_URL } from "../shared/constants/statics";
 import styles from "./waiting-room.module.css";
 
 import lavalamp from "../assets/lavalamp.gif";
+import seperator from "../assets/seperator.png";
 
 const WaitingRoom: Component = () => {
   const params = useParams();
@@ -62,7 +63,9 @@ const WaitingRoom: Component = () => {
     } else return true;
   }
 
-  onMount(() => {});
+  onMount(() => {
+      init();
+    });
 
   onCleanup(() => {
     if (socket) {
@@ -79,14 +82,22 @@ const WaitingRoom: Component = () => {
           <div class={styles.content}>
             <header class={styles.header}>
               <img src={lavalamp} class={styles.lavalamp} />
-              <h2 id={styles.title}> Waiting Room </h2>
+              <h1 id={styles.title}> Waiting Room </h1>
               <img src={lavalamp} class={styles.lavalamp} />
             </header>
+            <div class={styles.seperator}></div>
             <div id={styles.waiting_room}>
-              Players: {members()}/2
-              <button onClick={startGame} disabled={disableButton()}>
-                StartGame
-              </button>
+            <div class={styles.settings}>
+                <h2>Settings</h2>
+            </div>
+                <div class={styles.player_manage}>
+                  <h3>Players: {members()}/2</h3>
+                </div>
+              <div class={styles.button_container}>
+                  <button onClick={startGame} disabled={disableButton()} class={styles.button_start}>
+                    GO!
+                  </button>
+              </div>
             </div>
           </div>
         </div>

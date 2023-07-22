@@ -132,6 +132,7 @@ const Lobby: Component = () => {
               </ul>
             </div>
           </div>
+        <div id={styles.lobby_footer}></div>
         </div>
       </div>
     </>

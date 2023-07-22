@@ -51,20 +51,23 @@ def get_csrf():
 
     return response, 200
 
-'''
+
+"""
 This inizializes the lobby and joins the creator into the lobby
 for now this reconects to the old game if it is still running so the player needs to surrender 
-'''
+"""
+
+
 @main.route("/api/createLobby")
 @utils.add_user_id
 def create_Lobby():
     game_id = str(uuid.uuid4())
-    '''
+    """
     playerOldGame = players.get(session["user_id"])
     if playerOldGame:
         if not lobbies[playerOldGame].is_game_over:
             return {"gameID": playerOldGame}
-    '''
+    """
 
     if game_id not in lobbies:
         lobbies[game_id] = Lobby(session["user_id"])
@@ -75,9 +78,12 @@ def create_Lobby():
 
     return {"gameID": game_id}, 200
 
-'''
+
+"""
 This is to 1. give the joining user an id and 2. check if he should be able to connect
-'''
+"""
+
+
 @main.route("/api/joinLobby/<game_id>")
 @utils.add_user_id
 def join_lobby(game_id):
@@ -88,11 +94,14 @@ def join_lobby(game_id):
     if game_id in lobbies:
         if lobby.check_player_can_join(session["user_id"]):
             players[session["user_id"]] = game_id
-            return {"canJoin": True,
-                    "gameRunning": lobby.is_game_running,
-                    "userID": session["user_id"]}, 200
+            return {
+                "canJoin": True,
+                "gameRunning": lobby.is_game_running,
+                "userID": session["user_id"],
+            }, 200
     else:
         return {"canJoin": False}, 200
+
 
 @main.route("/api/runningGame")
 @utils.add_user_id

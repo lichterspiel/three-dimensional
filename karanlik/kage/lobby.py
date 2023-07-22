@@ -92,7 +92,7 @@ class Lobby:
                 self.set_winner(self.p1)
                 self.game_over()
                 return True
-        
+
         return False
 
     def convert_to_obj(self):
