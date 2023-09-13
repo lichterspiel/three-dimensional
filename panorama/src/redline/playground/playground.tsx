@@ -78,7 +78,7 @@ const Playground: Component<PlaygroundProps> = (props) => {
   });
 
   function revenge() {
-      if (!props.debug && props.showGameFun){ 
+    if (!props.debug && props.showGameFun){ 
         props.showGameFun(false);
     }
   }

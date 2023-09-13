@@ -28,6 +28,7 @@ let isGameRunning: boolean;
 let turn: string;
 let setGameStats: Function;
 let focusedBoard: { [key: string]: Function } = {};
+let gui: GUI;
 
 let isDebug: boolean = false;
 
@@ -152,7 +153,7 @@ function initThree(): void {
   const axesHelper = new THREE.AxesHelper(50);
   scene.add(axesHelper);
 
-  const gui = new GUI();
+  gui = new GUI();
   const viewFolder = gui.addFolder("Focus Board");
 
   function createBoardCallback(board: string, n: number) {
@@ -189,7 +190,7 @@ function render() {
 }
 
 function updateBoard(hit: string) {
-  let req: PlayerMove = { field: parseInt(hit) };
+  let req: PlayerMove = { field: hit };
 
   if (!isDebug) {
     socket.emit("player-move", req);
@@ -375,6 +376,7 @@ function getCanvasRelativePosition(event: MouseEvent) {
 }
 
 export function cleanupScene(): void {
+  if (gui) gui.destroy();
   if (renderer) renderer.dispose();
 }
 

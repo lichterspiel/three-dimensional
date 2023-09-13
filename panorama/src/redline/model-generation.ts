@@ -66,9 +66,9 @@ function createLine(
 
 export function create3DBoard(root: THREE.Object3D) {
     const boards = [
-        createBoard(root, "0"),
-        createBoard(root, "1"),
-        createBoard(root, "2"),
+        createBoard(root, 0),
+        createBoard(root, 1),
+        createBoard(root, 2),
     ]
 
     return boards;
@@ -89,7 +89,7 @@ function createBoardHitbox(size: number) {
   return mesh;
 }
 
-export function createBoard(rootObject: THREE.Object3D, prefix="0") {
+export function createBoard(rootObject: THREE.Object3D, prefix=0) {
   const lineGroup = new THREE.Group();
   const lines: THREE.Mesh[] = [
     createLine(),
@@ -128,6 +128,7 @@ export function createBoard(rootObject: THREE.Object3D, prefix="0") {
   });
 
   hitbox.forEach((h, i) => {
+      if (prefix == 1 && i == 4) return
     hitboxLocal.add(h);
 
     // make hitboxes to a plane kinda just the layout
@@ -136,7 +137,7 @@ export function createBoard(rootObject: THREE.Object3D, prefix="0") {
 
     // name board to later identify it when raycasting
     // TODO: rename this to also include which board it is later
-    h.name = `${prefix}${i.toString()}`
+    h.name = `${prefix.toString()}${i.toString()}`
   });
 
   // align the hitboxes to the board
@@ -144,7 +145,7 @@ export function createBoard(rootObject: THREE.Object3D, prefix="0") {
   hitboxLocal.translateZ(-distance);
 
   lineGroup.add(hitboxLocal);
-  lineGroup.position.setY(parseInt(prefix) * 8)
+  lineGroup.position.setY(prefix * 8)
   rootObject.add(lineGroup);
   return lineGroup
 }

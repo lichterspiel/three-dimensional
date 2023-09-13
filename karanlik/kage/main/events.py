@@ -58,7 +58,7 @@ This is used to initialize the game and start showing the game on the frontend
 def handle_start_game():
     game_id = players[session["user_id"]]
     lobby = lobbies[game_id]
-    if lobby.members == 2 and lobby.is_game_running == False:
+    if lobby.members == 2 and not lobby.is_game_running:
         lobby.start_new_game()
         emit("game-started", to=game_id)
 
@@ -105,14 +105,14 @@ def handle_player_move(rq):
             to=game_id,
         )
 
-    if game.check_if_won(move, player_id):
+    if game.check_win(move, player_id):
         lobby.game_over()
         lobby.set_winner(session["user_id"])
         emit("game-over", json.dumps({"winner": lobby.winner}), to=game_id)
 
         del game
 
-    elif game.check_if_tie():
+    elif game.check_tie():
         lobby.game_over()
         emit("tie", to=game_id)
 

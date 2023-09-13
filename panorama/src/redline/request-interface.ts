@@ -1,3 +1,3 @@
 export interface PlayerMove{
-    field: number;
+    field: string;
 }
