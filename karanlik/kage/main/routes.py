@@ -60,7 +60,7 @@ for now this reconects to the old game if it is still running so the player need
 
 @main.route("/api/createLobby")
 @utils.add_user_id
-def create_Lobby():
+def create_lobby():
     game_id = str(uuid.uuid4())
     """
     playerOldGame = players.get(session["user_id"])
@@ -68,7 +68,6 @@ def create_Lobby():
         if not lobbies[playerOldGame].is_game_over:
             return {"gameID": playerOldGame}
     """
-
     if game_id not in lobbies:
         lobbies[game_id] = Lobby(session["user_id"])
         lobbies[game_id].id = game_id
@@ -106,7 +105,6 @@ def join_lobby(game_id):
 @main.route("/api/runningGame")
 @utils.add_user_id
 def running_game():
-    print(lobbies)
     for lobby in lobbies.values():
         if lobby.player_is_in_lobby(session["user_id"]):
             return {"runningGame": True, "lobby": lobby.convert_to_obj()}, 200

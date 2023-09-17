@@ -3,7 +3,7 @@ from functools import wraps
 
 from flask import session
 
-from .game_board import GameBoard
+from .game import Game
 from .lobby import Lobby
 
 
@@ -20,7 +20,7 @@ def generate_dummy_lobby(count=20):
 def generate_dummy_game(count=20):
     games = []
     for i in range(count):
-        games.append(GameBoard(i, i * 5))
+        games.append(Game(i, i * 5))
 
     return games
 

@@ -1,4 +1,4 @@
-from kage.game_board import GameBoard
+from kage.game import Game
 
 
 class Lobby:
@@ -66,7 +66,7 @@ class Lobby:
         self.winner = self.p1 if p == self.p1 else self.p2
 
     def start_new_game(self):
-        self.game = GameBoard(self.p1, self.p2)
+        self.game = Game(self.p1, self.p2)
         self.is_game_running = True
         self.is_game_over = False
         self.winner = ""

@@ -1,50 +1,63 @@
+from enum import Enum
 import json
 import math
 
 
-class GameBoard:
+class Game:
     EMPTY_CELL = ""
-    UP_RIGHT = 0
-    UP_LEFT = 1
-    UP_UP = 2
-    UP_DOWN = 3
-    CROSS_LEFT_RIGHT = 4
-    CROSS_UP_DOWN = 5
+    MODES = Enum("Mode", ["CLASSIC", "THREE", "FOUR"])
+    MOVES = Enum("Moves", ["UP_RIGHT", "UP_LEFT", "UP_UP", "UP_DOWN"])
 
     solve_moves_3D = {
         0: {
-            0: [UP_RIGHT, UP_DOWN],
-            2: [UP_LEFT, UP_DOWN],
-            6: [UP_RIGHT, UP_UP],
-            8: [UP_LEFT, UP_UP],
+            0: [MOVES.UP_RIGHT, MOVES.UP_DOWN],
+            2: [MOVES.UP_LEFT, MOVES.UP_DOWN],
+            6: [MOVES.UP_RIGHT, MOVES.UP_MOVES.UP],
+            8: [MOVES.UP_LEFT, MOVES.UP_MOVES.UP],
         },
         1: {
-            1: [UP_RIGHT, UP_LEFT],
-            3: [UP_UP, UP_DOWN],
-            5: [UP_UP, UP_DOWN],
-            7: [UP_RIGHT, UP_LEFT],
+            1: [MOVES.UP_RIGHT, MOVES.UP_LEFT],
+            3: [MOVES.UP_MOVES.UP, MOVES.UP_DOWN],
+            5: [MOVES.UP_MOVES.UP, MOVES.UP_DOWN],
+            7: [MOVES.UP_RIGHT, MOVES.UP_LEFT],
         },
         2: {
-            0: [UP_LEFT, UP_UP],
-            2: [UP_RIGHT, UP_UP],
-            6: [UP_LEFT, UP_DOWN],
-            8: [UP_RIGHT, UP_DOWN],
-        }
+            0: [MOVES.UP_LEFT, MOVES.UP_MOVES.UP],
+            2: [MOVES.UP_RIGHT, MOVES.UP_MOVES.UP],
+            6: [MOVES.UP_LEFT, MOVES.UP_DOWN],
+            8: [MOVES.UP_RIGHT, MOVES.UP_DOWN],
+        },
     }
 
-    def __init__(self, ply1, ply2, mode=0):
-        self.p1 = ply1
-        self.p2 = ply2
-        self.board = [[[self.EMPTY_CELL for i in range(
-            3)] for i in range(3)] for i in range(3)]
+    def __init__(self, playr1, playr2, mode="3D"):
+        self.p1 = playr1
+        self.p2 = playr2
         self.turn = self.p1
-        self.solve_fun = [self.check_up_right,
-                          self.check_up_left,
-                          self.check_up_up,
-                          self.check_up_down]
-        self.mode = mode
+        self.mode = self.MODES[mode].value
+        self.generate_board()
 
-    def make_move(self, player, move):
+        self.solve_fun = [
+            self.check_up_right,
+            self.check_up_left,
+            self.check_up_up,
+            self.check_up_down,
+        ]
+
+    def generate_board(self):
+        if self.mode == self.MODES.CLASSIC.value:
+            self.board = [[self.EMPTY_CELL for i in range(3)] for i in range(3)]
+        elif self.mode == self.MODES.THREE.value:
+            self.board = [
+                [[self.EMPTY_CELL for i in range(3)] for i in range(3)]
+                for i in range(3)
+            ]
+        elif self.mode == self.MODES.FOUR.value:
+            self.board = [
+                [[self.EMPTY_CELL for i in range(4)] for i in range(4)]
+                for i in range(4)
+            ]
+
+    def player_move(self, player, move):
         b_num, x, y = self.convertString2Move(move)
         b = self.board[b_num]
 
@@ -56,14 +69,17 @@ class GameBoard:
         return True
 
     def check_win(self, lastMove, player):
-        if self.mode == 0:
-            return (self.check_win_2D(lastMove, player) or
-                    self.check_win_3D(lastMove, player))
+        if self.mode == self.MOVES.CLASSIC.value:
+            return self.check_win_classic(lastMove, player)
+        elif self.mode == self.MOVES.THREE.value:
+            return self.check_win_classic(lastMove, player) or self.check_win_three(
+                lastMove, player
+            )
 
-    def check_win_3D(self, lastMove, player):
+    def check_win_three(self, lastMove, player):
         b, x, y = self.convertString2Move(lastMove)
         # Straight line top to bottom (column)
-        if self.check_vertical_3D(b, x, y, player):
+        if self.check_vertical_three(b, x, y, player):
             return True
 
         moves_to_check = self.solve_moves_3D[b].get(int(lastMove[1]))
@@ -94,15 +110,10 @@ class GameBoard:
 
     # bottom board last row field to first row field top board
     def check_up_up(self, x, y, player):
-        print("HERE")
-        print(x, y)
-        print("HERE")
         count = 0
         for i in range(3):
             if self.board[i][2 - i][x] == player:
-                print("COUNT")
                 count += 1
-        print(f"COUNT: {count}")
         return count == 3
 
     # bottom board first row field to last row field top board
@@ -113,14 +124,14 @@ class GameBoard:
                 count += 1
         return count == 3
 
-    def check_vertical_3D(self, b, x, y, player):
+    def check_vertical_three(self, b, x, y, player):
         count = 0
         for i in range(3):
             if self.board[i][y][x] == player:
                 count += 1
         return count == 3
 
-    def check_win_2D(self, lastMove, player):
+    def check_win_classic(self, lastMove, player):
         b, x, y = self.convertString2Move(lastMove)
         board = self.board[b]
 
@@ -160,24 +171,23 @@ class GameBoard:
         return False
 
     def check_tie(self):
-        if self.mode == 0:
+        if self.mode == self.MODES.CLASSIC:
+            self.check_tie_2D()
+        elif self.mode == self.MODES.THREE:
             self.check_tie_3D()
-        else:
-            self.check_tie_2D(self.board)
 
     # TODO: implement this
     def check_tie_3D(self):
         return False
 
-    def check_tie_2D(self, board):
-        for row in board:
+    def check_tie_2D(self):
+        for row in self.board:
             for column in row:
                 if column == "":
                     return False
         return True
 
     def convertString2Move(self, move):
-        print("MOVEEEEE:"+ move)
         b = int(move[0])
         y = math.floor(int(move[1]) / 3)
         x = math.floor(int(move[1]) % 3)
