@@ -64,7 +64,7 @@ function createLine(
   return mesh;
 }
 
-export function create3DBoard(root: THREE.Object3D) {
+export function createThreeBoard(root: THREE.Object3D): THREE.Group[] {
     const boards = [
         createBoard(root, 0),
         createBoard(root, 1),
@@ -89,7 +89,7 @@ function createBoardHitbox(size: number) {
   return mesh;
 }
 
-export function createBoard(rootObject: THREE.Object3D, prefix=0) {
+export function createBoard(rootObject: THREE.Object3D, prefix=0): THREE.Group {
   const lineGroup = new THREE.Group();
   const lines: THREE.Mesh[] = [
     createLine(),

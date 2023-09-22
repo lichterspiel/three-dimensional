@@ -3,14 +3,9 @@ import { Component, createResource, For, Show } from "solid-js";
 
 import graffitiLine from "../assets/LineGraffiti.png";
 import welcome from "../assets/Welcome.png";
+import { GameLobby } from "../redline/response-interface";
 import { API_BASE_URL } from "../shared/constants/statics";
 import styles from "./lobby.module.css";
-
-/*
- * TODO: This component should show at the top 2 buttons one to create a game the other to join a game either via code
- * or you can join directly via link
- * In the bottom should be a list of games where people can freely join
- */
 
 async function getLobbies() {
   const res = await fetch(`${API_BASE_URL}/lobbies`, {
@@ -20,22 +15,10 @@ async function getLobbies() {
   return j;
 }
 
-async function getRunningGame() {
-  const res = await fetch(`${API_BASE_URL}/runningGame`, {
-    credentials: "include",
-  });
-  const j = await res.json();
-  if (!j["runningGame"]) {
-    return null;
-  }
-  return j;
-}
-
 const Lobby: Component = () => {
   const [lobbies] = createResource<GameLobby[]>(getLobbies, {
     initialValue: [],
   });
-  const [runningGame] = createResource<GameLobby>(getRunningGame);
   const navigate = useNavigate();
 
   async function createGame() {
@@ -97,16 +80,6 @@ const Lobby: Component = () => {
             >
               create
             </button>
-            <Show when={runningGame()}>
-              <button
-                onclick={() => joinGame(runningGame()!["gameID"])}
-                class={`${styles.game_button} ${styles.current_game}`}
-                onMouseMove={handleButtonHover}
-                onMouseLeave={handleMouseLeave}
-              >
-                resume
-              </button>
-            </Show>
           </div>
           <div class={styles.rooms}>
             <h1 id={styles.rooms_heading}>Open Rooms</h1>
@@ -132,7 +105,7 @@ const Lobby: Component = () => {
               </ul>
             </div>
           </div>
-        <div id={styles.lobby_footer}></div>
+          <div id={styles.lobby_footer}></div>
         </div>
       </div>
     </>

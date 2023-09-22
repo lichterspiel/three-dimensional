@@ -14,6 +14,7 @@ import Modal from "../../shared/modal/modal";
 import GameGui from "../gameGui/game-gui";
 import styles from "./playground.module.css";
 import initGear3, { cleanupScene } from "./world";
+import { GameMode } from "../../shared/game-modes";
 
 export interface GameStatsI {
   turn: string;
@@ -22,11 +23,12 @@ export interface GameStatsI {
 }
 
 interface PlaygroundProps {
-  userID?: string;
-  gameID?: string;
-  socket?: Socket;
-  showGameFun?: Setter<boolean>;
-  debug?: boolean;
+  userID: string;
+  gameID: string;
+  socket: Socket;
+  showGameFun: Setter<boolean>;
+  debug: boolean;
+  mode: GameMode;
 }
 
 const Playground: Component<PlaygroundProps> = (props) => {
@@ -47,10 +49,10 @@ const Playground: Component<PlaygroundProps> = (props) => {
         */
 
     if (props.debug){
-        initGear3(canvasRef!, socket, "black-lemonade", "blondey", setGameStats, props.debug);
+        initGear3(canvasRef!, socket, "black-lemonade", "blondey", setGameStats, props.debug, GameMode.Three);
     }
     else {
-        initGear3(canvasRef!, socket, props.gameID, props.userID, setGameStats, props.debug);
+        initGear3(canvasRef!, socket, props.gameID, props.userID, setGameStats, props.debug, props.mode);
     }
   }
 

@@ -76,34 +76,50 @@
     cursor: pointer;
     font-size: 1.5rem;
     font-weight: bold;
-    border: 3px double var(--color-primary-4);
-    border-radius: 8px;
-    background: var(--color-secondary-1-2);
-    outline: 1px solid white;
+    border: 3px solid white;
+    border-radius: 4px;
+    background: var(--color-secondary-2-4);
+    box-shadow: 0 3px 0 0 white;
 }
 
-.button_start:disabled {
-    border: 3px double var(--color-primary-4);
-    background: var(--color-secondary-1-4);
-    outline: 1px solid grey;
-    cursor: not-allowed;
-    color: #ccc;
+.button_start:active{
+    box-shadow: none;
+    transform: translateY(3px);
+
 }
 
 
 .settings {
-    text-align: left;
     width: 100%;
-}
-
-.settings h2 {
     border-bottom: 1px solid var(--color-secondary-2-1);
 }
 
-.player_manage {
+.settings h2{
+    display: inline-block;
+    width: 50%;
+    text-align: left;
+}
+
+.waiting_content{
     width: 100%;
     height: 200px;
+}
+
+.players_container {
+    display: inline-block;
+    width: 50%;
+    text-align: left;
+}
+
+.player_names{
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
+    width: 100%;
+    height: 100px;
+    align-items: start;
+    justify-content: space-evenly;
+}
+
+.game_mode{
+    padding: 5px 10px;
 }

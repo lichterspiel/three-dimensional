@@ -1,22 +1,25 @@
-interface InitGame {
+import { GameMode } from "../shared/game-modes";
+
+export interface InitGame {
   board: string[][];
   turn: string;
   count: number;
 }
 
-interface LoadGame {
+export interface LoadGame {
   board: string[][];
   turn: string;
   p1: string;
   p2: string;
+  mode: GameMode;
 }
 
-interface ConfirmPlayerMove {
+export interface ConfirmPlayerMove {
   field: number;
   turn: string;
 }
 
-interface GameLobby {
+export interface GameLobby {
   p1: string;
   isGameRunning: boolean;
   members: number;
