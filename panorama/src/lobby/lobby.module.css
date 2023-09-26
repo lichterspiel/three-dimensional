@@ -156,3 +156,9 @@
     height: 37px;
     background: #9F71FC url("../assets/seperator2.gif");
 }
+
+.user_form{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

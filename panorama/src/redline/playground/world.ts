@@ -25,6 +25,8 @@ let gameBoard: THREE.Group[] | THREE.Group;
 let controls: any;
 let socket: Socket;
 
+let playerOneColor: number;
+let playerTwoColor: number;
 let gameID: string;
 let playerID: string;
 let playerNumber: number;
@@ -51,7 +53,9 @@ function initGear3(
   p_playerID: string,
   p_setStats: Function,
   p_isDebug: boolean,
-  p_mode: GameMode
+  p_mode: GameMode,
+  p_p1_color: number,
+  p_p2_color: number,
 ) {
   canvas = p_canvas;
   gameID = p_gameID;
@@ -60,6 +64,8 @@ function initGear3(
   setGameStats = p_setStats;
   isDebug = p_isDebug;
   mode = p_mode;
+  playerOneColor = p_p1_color;
+  playerTwoColor = p_p2_color;
 
   if (!p_isDebug && p_socket) {
     socket = p_socket;
@@ -250,7 +256,7 @@ function spawnPlayerField(pMeshName: string) {
   if (isDebug) {
     skinNumber = parseInt(turn);
   }
-  let c = skinNumber == 0 ? createCross(0xf782faf) : createCircle(0xff82af);
+  let c = skinNumber == 0 ? createCross(playerOneColor) : createCircle(playerTwoColor);
 
   console.log("skinNumber spawn: " + skinNumber);
 

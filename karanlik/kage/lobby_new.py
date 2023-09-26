@@ -1,10 +1,11 @@
 from kage.game import Game
+from kage.player import Player
 
 
 class Lobby:
     id = None
-    p1 = None
-    p2 = None
+    p1: Player = None
+    p2: Player = None
     members = 0
     winner = None
     game = None
@@ -13,36 +14,27 @@ class Lobby:
     is_private = False
     p1_ready = False
     p2_ready = False
-    p1_name = "Akira"
-    p2_name = "Tetsuo"
 
-    def __init__(self, p1, p1_name,p1_color, is_private=True):
+    def __init__(self, p1, is_private=True):
         self.p1 = p1
-        self.p1_name = p1_name
-        self.p1_color = p1_color
         self.is_game_running = False
         self.is_game_over = False
         self.is_private = is_private
         self.members = 1
 
-    def join_player(self, p, p_name, p_color):
+    def join_player(self, p, p_name):
         if p == self.p1 or self.p2 is not None or self.members != 1:
             return False
 
         self.p2 = p
-        self.p2_name = p_name
-        self.p2_color = p_color
         self.members = 2
         return True
 
     def player_toggle_ready(self, p):
         if (p == self.p1):
-            self.p1_ready = not self.p1_ready
+            self.p1.toggle_ready()
         elif (p == self.p2):
-            self.p2_ready = not self.p2_ready
-    
-    def toggle_private(self):
-        self.is_private = not self.is_private
+            self.p2.toggle_ready()
 
     def check_player_in_running_game(self, p):
         if (p == self.p1 or p == self.p2) and self.is_game_running:

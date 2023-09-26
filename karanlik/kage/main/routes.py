@@ -1,6 +1,6 @@
 import uuid
 
-from flask import jsonify, session
+from flask import jsonify, session, request
 from flask_wtf.csrf import generate_csrf
 
 from .. import utils
@@ -34,6 +34,18 @@ def get_csrf():
     return response, 200
 
 
+@main.route("/api/user", methods=["POST", "GET"])
+@utils.add_user_id
+def handle_user_settings():
+    if request.method == "POST":
+        data = request.get_json()
+        session["color"] = data["color"]
+        session["name"] = data["name"]
+        return {"success": True}
+    else:
+        return {"name": session["name"], "color": session["color"]}, 200
+
+
 """
 This inizializes the lobby and joins the creator into the lobby
 for now this reconects to the old game if it is still running so the player needs to surrender 
@@ -45,7 +57,7 @@ for now this reconects to the old game if it is still running so the player need
 def create_lobby():
     game_id = str(uuid.uuid4())
     if game_id not in lobbies:
-        lobbies[game_id] = Lobby(session["user_id"])
+        lobbies[game_id] = Lobby(session["user_id"], session["name"], session["color"])
         lobbies[game_id].id = game_id
         players[session["user_id"]] = game_id
     else:

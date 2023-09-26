@@ -44,7 +44,7 @@ def handle_lobby_join():
     lobby = lobbies[game_id]
 
     join_room(game_id)
-    if lobby.join_player(session["user_id"]):
+    if lobby.join_player(session["user_id"], session["name"], session["color"]):
         emit("lobby-joined", lobby.convert_to_obj(), to=game_id)
     elif lobby.p1 == session["user_id"]:
         emit("lobby-joined", lobby.convert_to_obj(), to=game_id)
@@ -80,6 +80,7 @@ def handle_toggle_private():
     game_id = players[session["user_id"]]
     lobby = lobbies[game_id]
     if (lobby.p1 == session["user_id"]):
+        lobby.toggle_private()
         emit("toggled-private", {"isPrivate": lobby.is_private}, to=game_id)
 
 

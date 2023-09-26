@@ -251,6 +251,8 @@ const WaitingRoom: Component = () => {
           showGameFun={setShowGame}
           debug={false}
           mode={mode()}
+          p1Color={members()[0]?.color}
+          p2Color={members()[1]?.color}
         />
       </Show>
     </>

@@ -32,12 +32,12 @@ def create_app(test_config=None, debug=False):
     CORS(
         app,
         resources={r"*": {"origins": "http://localhost:3000"}},
-        expose_headers=["Content-Type", "X-CSRFToken"],
+        #expose_headers=["Content-Type", "X-CSRFToken"],
         origins=["http://localhost:3000"],
         supports_credentials=True,
     )
 
-    csrf = CSRFProtect(app)
+    #csrf = CSRFProtect(app)
 
     Session(app)
 

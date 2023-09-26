@@ -29,6 +29,8 @@ interface PlaygroundProps {
   showGameFun: Setter<boolean>;
   debug: boolean;
   mode: GameMode;
+  p1Color: number;
+  p2Color: number;
 }
 
 const Playground: Component<PlaygroundProps> = (props) => {
@@ -49,10 +51,10 @@ const Playground: Component<PlaygroundProps> = (props) => {
         */
 
     if (props.debug){
-        initGear3(canvasRef!, socket, "black-lemonade", "blondey", setGameStats, props.debug, GameMode.Three);
+        initGear3(canvasRef!, socket, "black-lemonade", "blondey", setGameStats, props.debug, GameMode.Three, 0xffffff, 0x000000);
     }
     else {
-        initGear3(canvasRef!, socket, props.gameID, props.userID, setGameStats, props.debug, props.mode);
+        initGear3(canvasRef!, socket, props.gameID, props.userID, setGameStats, props.debug, props.mode, props.p1Color, props.p2Color);
     }
   }
 

@@ -3,4 +3,5 @@ export interface Player {
     name: string,
     ready: boolean,
     admin: boolean,
+    color: number,
 }
